@@ -1,0 +1,335 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  
+  <!-- Licensed under the Apache 2.0 License -->
+  <link rel="stylesheet" type="text/css" href="_static/fonts/open-sans/stylesheet.css" />
+  <!-- Licensed under the SIL Open Font License -->
+  <link rel="stylesheet" type="text/css" href="_static/fonts/source-serif-pro/source-serif-pro.css" />
+  <link rel="stylesheet" type="text/css" href="_static/css/bootstrap.min.css" />
+  <link rel="stylesheet" type="text/css" href="_static/css/bootstrap-theme.min.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+    <title>PositionConfSpace &#8212; Osprey 3.0-beta1 documentation</title>
+    <link rel="stylesheet" href="_static/guzzle.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/style.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '3.0-beta1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+  
+   
+
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Osprey 3.0-beta1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="container-wrapper">
+
+      <div id="mobile-toggle">
+        <a href="#"><span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span></a>
+      </div>
+  <div id="left-column">
+    <div class="sphinxsidebar">
+        <a href="
+    index.html" class="text-logo">Osprey 3.0-beta1 documentation</a>
+        
+<div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <h2>Table Of Contents</h2>
+  </div>
+  <div class="sidebar-toc">
+    
+    
+      <ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.osprey.html">API reference</a></li>
+</ul>
+
+    
+  </div>
+</div>
+        
+<div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <div id="main-search">
+      <form class="form-inline" action="search.html" method="GET" role="form">
+        <div class="input-group">
+          <input name="q" type="text" class="form-control" placeholder="Search...">
+        </div>
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div>
+    </div>
+  </div>
+        <div id="right-column">
+          
+          <div role="navigation" aria-label="breadcrumbs navigation">
+            <ol class="breadcrumb">
+              <li><a href="index.html">Docs</a></li>
+              
+              <li>PositionConfSpace</li>
+            </ol>
+          </div>
+          
+          <div class="document clearer body">
+            
+  <div class="section" id="positionconfspace">
+<h1>PositionConfSpace<a class="headerlink" href="#positionconfspace" title="Permalink to this headline">¶</a></h1>
+<p>Java class: <code class="docutils literal"><span class="pre">edu.duke.cs.osprey.confspace.PositionConfSpace</span></code></p>
+<div class="section" id="constructors">
+<h2>Constructors<a class="headerlink" href="#constructors" title="Permalink to this headline">¶</a></h2>
+<p><em>This is a Java class which has been exposed to the Python API. For more information
+on how to call constructors on Java objects, see the tutorial:</em> <a class="reference internal" href="constructors.html#constructors"><span class="std std-ref">Accessing Java Classes from Python</span></a>.</p>
+<hr class="docutils" />
+<dl class="method">
+<dt id="PositionConfSpace.PositionConfSpace">
+<code class="descclassname">PositionConfSpace.</code><code class="descname">PositionConfSpace</code><span class="sig-paren">(</span><em>pos</em>, <em>res</em>, <em>resDOFs</em>, <em>allowedAAs</em>, <em>contSCFlex</em>, <em>strandDOFs</em>, <em>perts</em>, <em>pertIntervals</em>, <em>pertStates</em>, <em>bfb</em>, <em>useEllipses</em>, <em>wtRots</em>, <em>wtRotOnly</em><span class="sig-paren">)</span><a class="headerlink" href="#PositionConfSpace.PositionConfSpace" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>pos</strong> (<em>int</em>) – </li>
+<li><strong>res</strong> (<a class="reference internal" href="api.structure.Residue.html" title="edu.duke.cs.osprey.structure.Residue"><code class="xref java java-ref docutils literal"><span class="pre">Residue</span></code></a>) – </li>
+<li><strong>resDOFs</strong> (<code class="docutils literal"><code class="xref java java-ref docutils literal"><span class="pre">ArrayList</span></code></code> &lt; <a class="reference internal" href="api.dof.DegreeOfFreedom.html" title="edu.duke.cs.osprey.dof.DegreeOfFreedom"><code class="xref java java-ref docutils literal"><span class="pre">DegreeOfFreedom</span></code></a> &gt;) – </li>
+<li><strong>allowedAAs</strong> (<code class="docutils literal"><code class="xref java java-ref docutils literal"><span class="pre">ArrayList</span></code></code> &lt; <code class="docutils literal"><span class="pre">str</span></code> &gt;) – </li>
+<li><strong>contSCFlex</strong> (<em>bool</em>) – </li>
+<li><strong>strandDOFs</strong> (<code class="docutils literal"><code class="xref java java-ref docutils literal"><span class="pre">ArrayList</span></code></code> &lt; <a class="reference internal" href="api.dof.DegreeOfFreedom.html" title="edu.duke.cs.osprey.dof.DegreeOfFreedom"><code class="xref java java-ref docutils literal"><span class="pre">DegreeOfFreedom</span></code></a> &gt;) – </li>
+<li><strong>perts</strong> (<code class="docutils literal"><code class="xref java java-ref docutils literal"><span class="pre">ArrayList</span></code></code> &lt; <a class="reference internal" href="api.dof.deeper.perts.Perturbation.html" title="edu.duke.cs.osprey.dof.deeper.perts.Perturbation"><code class="xref java java-ref docutils literal"><span class="pre">Perturbation</span></code></a> &gt;) – </li>
+<li><strong>pertIntervals</strong> (<code class="docutils literal"><code class="xref java java-ref docutils literal"><span class="pre">ArrayList</span></code></code> &lt; <code class="docutils literal"><code class="xref java java-ref docutils literal"><span class="pre">ArrayList</span></code></code> &lt; float [] &gt; &gt;) – </li>
+<li><strong>pertStates</strong> (<code class="docutils literal"><code class="xref java java-ref docutils literal"><span class="pre">ArrayList</span></code></code> &lt; <code class="docutils literal"><code class="xref java java-ref docutils literal"><span class="pre">ArrayList</span></code></code> &lt; int [] &gt; &gt;) – </li>
+<li><strong>bfb</strong> (<a class="reference internal" href="api.bbfree.BBFreeBlock.html" title="edu.duke.cs.osprey.bbfree.BBFreeBlock"><code class="xref java java-ref docutils literal"><span class="pre">BBFreeBlock</span></code></a>) – </li>
+<li><strong>useEllipses</strong> (<em>bool</em>) – </li>
+<li><strong>wtRots</strong> (<a class="reference internal" href="api.restypes.ResidueTemplate.html" title="edu.duke.cs.osprey.restypes.ResidueTemplate"><code class="xref java java-ref docutils literal"><span class="pre">ResidueTemplate</span></code></a>) – </li>
+<li><strong>wtRotOnly</strong> (<em>bool</em>) – </li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descclassname">PositionConfSpace.</code><code class="descname">PositionConfSpace</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>other</strong> (<a class="reference internal" href="#" title="edu.duke.cs.osprey.confspace.PositionConfSpace"><code class="xref java java-ref docutils literal"><span class="pre">PositionConfSpace</span></code></a>) – </td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="properties">
+<h2>Properties<a class="headerlink" href="#properties" title="Permalink to this headline">¶</a></h2>
+<dl class="attribute">
+<dt id="PositionConfSpace.RCs">
+<code class="descclassname">PositionConfSpace.</code><code class="descname">RCs</code><a class="headerlink" href="#PositionConfSpace.RCs" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body"><code class="docutils literal"><code class="xref java java-ref docutils literal"><span class="pre">ArrayList</span></code></code> &lt; <a class="reference internal" href="api.confspace.RC.html" title="edu.duke.cs.osprey.confspace.RC"><code class="xref java java-ref docutils literal"><span class="pre">RC</span></code></a> &gt;</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="PositionConfSpace.wtRCs">
+<code class="descclassname">PositionConfSpace.</code><code class="descname">wtRCs</code><a class="headerlink" href="#PositionConfSpace.wtRCs" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body"><code class="docutils literal"><code class="xref java java-ref docutils literal"><span class="pre">ArrayList</span></code></code> &lt; <a class="reference internal" href="api.confspace.RC.html" title="edu.duke.cs.osprey.confspace.RC"><code class="xref java java-ref docutils literal"><span class="pre">RC</span></code></a> &gt;</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="PositionConfSpace.res">
+<code class="descclassname">PositionConfSpace.</code><code class="descname">res</code><a class="headerlink" href="#PositionConfSpace.res" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body"><a class="reference internal" href="api.structure.Residue.html" title="edu.duke.cs.osprey.structure.Residue"><code class="xref java java-ref docutils literal"><span class="pre">Residue</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="PositionConfSpace.designIndex">
+<code class="descclassname">PositionConfSpace.</code><code class="descname">designIndex</code><a class="headerlink" href="#PositionConfSpace.designIndex" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body">int</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="PositionConfSpace.dihedFlexInterval">
+<code class="descclassname">PositionConfSpace.</code><code class="descname">dihedFlexInterval</code><a class="headerlink" href="#PositionConfSpace.dihedFlexInterval" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body">float</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="methods">
+<h2>Methods<a class="headerlink" href="#methods" title="Permalink to this headline">¶</a></h2>
+<dl class="method">
+<dt id="PositionConfSpace.makeDOFBounds">
+<code class="descclassname">PositionConfSpace.</code><code class="descname">makeDOFBounds</code><span class="sig-paren">(</span><em>chi</em><span class="sig-paren">)</span><a class="headerlink" href="#PositionConfSpace.makeDOFBounds" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>chi</strong> (<em>float</em>) – </td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">float []</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="PositionConfSpace.getEllipsoidalCoords">
+<code class="descclassname">PositionConfSpace.</code><code class="descname">getEllipsoidalCoords</code><span class="sig-paren">(</span><em>dihedrals</em><span class="sig-paren">)</span><a class="headerlink" href="#PositionConfSpace.getEllipsoidalCoords" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>dihedrals</strong> (<em>float</em><em> [</em><em>]</em>) – </td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">float []</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="PositionConfSpace.getEllipsoidalArray">
+<code class="descclassname">PositionConfSpace.</code><code class="descname">getEllipsoidalArray</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#PositionConfSpace.getEllipsoidalArray" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal"><code class="xref java java-ref docutils literal"><span class="pre">ArrayList</span></code></code> &lt; <a class="reference internal" href="api.dof.EllipseCoordDOF.html" title="edu.duke.cs.osprey.dof.EllipseCoordDOF"><code class="xref java java-ref docutils literal"><span class="pre">EllipseCoordDOF</span></code></a> &gt;</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="PositionConfSpace.replaceRC">
+<code class="descclassname">PositionConfSpace.</code><code class="descname">replaceRC</code><span class="sig-paren">(</span><em>oldRC</em>, <em>newRCs</em><span class="sig-paren">)</span><a class="headerlink" href="#PositionConfSpace.replaceRC" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>oldRC</strong> (<a class="reference internal" href="api.confspace.RC.html" title="edu.duke.cs.osprey.confspace.RC"><code class="xref java java-ref docutils literal"><span class="pre">RC</span></code></a>) – </li>
+<li><strong>newRCs</strong> (<code class="docutils literal"><code class="xref java java-ref docutils literal"><span class="pre">List</span></code></code> &lt; <a class="reference internal" href="api.confspace.RC.html" title="edu.duke.cs.osprey.confspace.RC"><code class="xref java java-ref docutils literal"><span class="pre">RC</span></code></a> &gt;) – </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="api.confspace.RCIndexMap.html" title="edu.duke.cs.osprey.confspace.RCIndexMap"><code class="xref java java-ref docutils literal"><span class="pre">RCIndexMap</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="PositionConfSpace.maxNumRCsPerResType">
+<code class="descclassname">PositionConfSpace.</code><code class="descname">maxNumRCsPerResType</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#PositionConfSpace.maxNumRCsPerResType" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">int</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+            
+        </div>
+        <div class="clearfix"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Osprey 3.0-beta1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+<script type="text/javascript">
+  $("#mobile-toggle a").click(function () {
+    $("#left-column").toggle();
+  });
+</script>
+<script type="text/javascript" src="_static/js/bootstrap.js"></script>
+  <div class="footer">
+    &copy; Copyright 2017, Donald Lab, Department of Computer Science, Duke University. Created using <a href="http://sphinx.pocoo.org/">Sphinx</a>.
+  </div>
+  </body>
+</html>

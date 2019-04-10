@@ -1,0 +1,360 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  
+  <!-- Licensed under the Apache 2.0 License -->
+  <link rel="stylesheet" type="text/css" href="_static/fonts/open-sans/stylesheet.css" />
+  <!-- Licensed under the SIL Open Font License -->
+  <link rel="stylesheet" type="text/css" href="_static/fonts/source-serif-pro/source-serif-pro.css" />
+  <link rel="stylesheet" type="text/css" href="_static/css/bootstrap.min.css" />
+  <link rel="stylesheet" type="text/css" href="_static/css/bootstrap-theme.min.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+    <title>EnergyCalculator &#8212; Osprey 3.0-beta1 documentation</title>
+    <link rel="stylesheet" href="_static/guzzle.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/style.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '3.0-beta1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+  
+   
+
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Osprey 3.0-beta1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="container-wrapper">
+
+      <div id="mobile-toggle">
+        <a href="#"><span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span></a>
+      </div>
+  <div id="left-column">
+    <div class="sphinxsidebar">
+        <a href="
+    index.html" class="text-logo">Osprey 3.0-beta1 documentation</a>
+        
+<div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <h2>Table Of Contents</h2>
+  </div>
+  <div class="sidebar-toc">
+    
+    
+      <ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.osprey.html">API reference</a></li>
+</ul>
+
+    
+  </div>
+</div>
+        
+<div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <div id="main-search">
+      <form class="form-inline" action="search.html" method="GET" role="form">
+        <div class="input-group">
+          <input name="q" type="text" class="form-control" placeholder="Search...">
+        </div>
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div>
+    </div>
+  </div>
+        <div id="right-column">
+          
+          <div role="navigation" aria-label="breadcrumbs navigation">
+            <ol class="breadcrumb">
+              <li><a href="index.html">Docs</a></li>
+              
+              <li>EnergyCalculator</li>
+            </ol>
+          </div>
+          
+          <div class="document clearer body">
+            
+  <div class="section" id="energycalculator">
+<h1>EnergyCalculator<a class="headerlink" href="#energycalculator" title="Permalink to this headline">¶</a></h1>
+<p>Java class: <code class="docutils literal"><span class="pre">edu.duke.cs.osprey.energy.EnergyCalculator</span></code></p>
+<blockquote>
+<div><p>Computes the energy of a molecule fragment from a conformation space using the desired forcefield parameters
+and residue interactions.</p>
+<p>Residue interactions are specified via <a class="reference internal" href="api.energy.ResidueInteractions.html" title="edu.duke.cs.osprey.energy.ResidueInteractions"><code class="xref java java-ref docutils literal"><span class="pre">ResidueInteractions</span></code></a> instances.
+Forcefield implementations are chosen via the type argument. If no type is specified, the best forcefield
+available implementation is automatically chosen based on the parallelism argument.</p>
+<p>If a fragment has continuous degrees of freedom, minimization will be performed before forcefield evaluation.</p>
+</div></blockquote>
+<div class="section" id="properties">
+<h2>Properties<a class="headerlink" href="#properties" title="Permalink to this headline">¶</a></h2>
+<dl class="attribute">
+<dt id="EnergyCalculator.parallelism">
+<code class="descclassname">EnergyCalculator.</code><code class="descname">parallelism</code><a class="headerlink" href="#EnergyCalculator.parallelism" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body"><a class="reference internal" href="api.parallelism.Parallelism.html" title="edu.duke.cs.osprey.parallelism.Parallelism"><code class="xref java java-ref docutils literal"><span class="pre">Parallelism</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="EnergyCalculator.tasks">
+<code class="descclassname">EnergyCalculator.</code><code class="descname">tasks</code><a class="headerlink" href="#EnergyCalculator.tasks" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body"><a class="reference internal" href="api.parallelism.TaskExecutor.html" title="edu.duke.cs.osprey.parallelism.TaskExecutor"><code class="xref java java-ref docutils literal"><span class="pre">TaskExecutor</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="EnergyCalculator.type">
+<code class="descclassname">EnergyCalculator.</code><code class="descname">type</code><a class="headerlink" href="#EnergyCalculator.type" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body"><a class="reference internal" href="api.energy.EnergyCalculator.Type.html" title="edu.duke.cs.osprey.energy.EnergyCalculator$Type"><code class="xref java java-ref docutils literal"><span class="pre">Type</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="EnergyCalculator.context">
+<code class="descclassname">EnergyCalculator.</code><code class="descname">context</code><a class="headerlink" href="#EnergyCalculator.context" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body"><a class="reference internal" href="api.energy.EnergyCalculator.Type.html" title="edu.duke.cs.osprey.energy.EnergyCalculator$Type"><code class="xref java java-ref docutils literal"><span class="pre">Type</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="EnergyCalculator.resPairCache">
+<code class="descclassname">EnergyCalculator.</code><code class="descname">resPairCache</code><a class="headerlink" href="#EnergyCalculator.resPairCache" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body"><a class="reference internal" href="api.energy.forcefield.ResPairCache.html" title="edu.duke.cs.osprey.energy.forcefield.ResPairCache"><code class="xref java java-ref docutils literal"><span class="pre">ResPairCache</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="EnergyCalculator.isMinimizing">
+<code class="descclassname">EnergyCalculator.</code><code class="descname">isMinimizing</code><a class="headerlink" href="#EnergyCalculator.isMinimizing" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body">bool</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="EnergyCalculator.infiniteWellEnergy">
+<code class="descclassname">EnergyCalculator.</code><code class="descname">infiniteWellEnergy</code><a class="headerlink" href="#EnergyCalculator.infiniteWellEnergy" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body"><code class="docutils literal"><span class="pre">Double</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="EnergyCalculator.alwaysResolveClashesEnergy">
+<code class="descclassname">EnergyCalculator.</code><code class="descname">alwaysResolveClashesEnergy</code><a class="headerlink" href="#EnergyCalculator.alwaysResolveClashesEnergy" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body"><code class="docutils literal"><span class="pre">Double</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="methods">
+<h2>Methods<a class="headerlink" href="#methods" title="Permalink to this headline">¶</a></h2>
+<dl class="method">
+<dt id="EnergyCalculator.clean">
+<code class="descclassname">EnergyCalculator.</code><code class="descname">clean</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#EnergyCalculator.clean" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="EnergyCalculator.calcEnergy">
+<code class="descclassname">EnergyCalculator.</code><code class="descname">calcEnergy</code><span class="sig-paren">(</span><em>pmol</em>, <em>inters</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyCalculator.calcEnergy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the energy of a molecule. If the molecule has continuous degrees of freedom,
+they will be minimized within the specified bounds before calculating the energy.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>pmol</strong> (<a class="reference internal" href="api.confspace.ParametricMolecule.html" title="edu.duke.cs.osprey.confspace.ParametricMolecule"><code class="xref java java-ref docutils literal"><span class="pre">ParametricMolecule</span></code></a>) – The molecule</li>
+<li><strong>inters</strong> (<a class="reference internal" href="api.energy.ResidueInteractions.html" title="edu.duke.cs.osprey.energy.ResidueInteractions"><code class="xref java java-ref docutils literal"><span class="pre">ResidueInteractions</span></code></a>) – Residue interactions for the energy function</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="api.energy.EnergyCalculator.EnergiedParametricMolecule.html" title="edu.duke.cs.osprey.energy.EnergyCalculator$EnergiedParametricMolecule"><code class="xref java java-ref docutils literal"><span class="pre">EnergiedParametricMolecule</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyCalculator.makeEnergyFunction">
+<code class="descclassname">EnergyCalculator.</code><code class="descname">makeEnergyFunction</code><span class="sig-paren">(</span><em>epmol</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyCalculator.makeEnergyFunction" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>epmol</strong> (<a class="reference internal" href="api.energy.EnergyCalculator.EnergiedParametricMolecule.html" title="edu.duke.cs.osprey.energy.EnergyCalculator$EnergiedParametricMolecule"><code class="xref java java-ref docutils literal"><span class="pre">EnergiedParametricMolecule</span></code></a>) – </td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="api.energy.EnergyFunction.html" title="edu.duke.cs.osprey.energy.EnergyFunction"><code class="xref java java-ref docutils literal"><span class="pre">EnergyFunction</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descclassname">EnergyCalculator.</code><code class="descname">makeEnergyFunction</code><span class="sig-paren">(</span><em>pmol</em>, <em>inters</em><span class="sig-paren">)</span></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>pmol</strong> (<a class="reference internal" href="api.confspace.ParametricMolecule.html" title="edu.duke.cs.osprey.confspace.ParametricMolecule"><code class="xref java java-ref docutils literal"><span class="pre">ParametricMolecule</span></code></a>) – </li>
+<li><strong>inters</strong> (<a class="reference internal" href="api.energy.ResidueInteractions.html" title="edu.duke.cs.osprey.energy.ResidueInteractions"><code class="xref java java-ref docutils literal"><span class="pre">ResidueInteractions</span></code></a>) – </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="api.energy.EnergyFunction.html" title="edu.duke.cs.osprey.energy.EnergyFunction"><code class="xref java java-ref docutils literal"><span class="pre">EnergyFunction</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyCalculator.makeEnergyObjFcn">
+<code class="descclassname">EnergyCalculator.</code><code class="descname">makeEnergyObjFcn</code><span class="sig-paren">(</span><em>pmol</em>, <em>inters</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyCalculator.makeEnergyObjFcn" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>pmol</strong> (<a class="reference internal" href="api.confspace.ParametricMolecule.html" title="edu.duke.cs.osprey.confspace.ParametricMolecule"><code class="xref java java-ref docutils literal"><span class="pre">ParametricMolecule</span></code></a>) – </li>
+<li><strong>inters</strong> (<a class="reference internal" href="api.energy.ResidueInteractions.html" title="edu.duke.cs.osprey.energy.ResidueInteractions"><code class="xref java java-ref docutils literal"><span class="pre">ResidueInteractions</span></code></a>) – </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="api.minimization.MoleculeObjectiveFunction.html" title="edu.duke.cs.osprey.minimization.MoleculeObjectiveFunction"><code class="xref java java-ref docutils literal"><span class="pre">MoleculeObjectiveFunction</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="EnergyCalculator.calcEnergyAsync">
+<code class="descclassname">EnergyCalculator.</code><code class="descname">calcEnergyAsync</code><span class="sig-paren">(</span><em>pmol</em>, <em>inters</em>, <em>listener</em><span class="sig-paren">)</span><a class="headerlink" href="#EnergyCalculator.calcEnergyAsync" title="Permalink to this definition">¶</a></dt>
+<dd><p>Asynchronous version of <a class="reference internal" href="#EnergyCalculator.calcEnergy" title="edu.duke.cs.osprey.energy.EnergyCalculator#calcEnergy"><code class="xref java java-ref docutils literal"><span class="pre">calcEnergy</span></code></a>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>pmol</strong> (<a class="reference internal" href="api.confspace.ParametricMolecule.html" title="edu.duke.cs.osprey.confspace.ParametricMolecule"><code class="xref java java-ref docutils literal"><span class="pre">ParametricMolecule</span></code></a>) – The molecule</li>
+<li><strong>inters</strong> (<a class="reference internal" href="api.energy.ResidueInteractions.html" title="edu.duke.cs.osprey.energy.ResidueInteractions"><code class="xref java java-ref docutils literal"><span class="pre">ResidueInteractions</span></code></a>) – Residue interactions for the energy function</li>
+<li><strong>listener</strong> (<a class="reference internal" href="api.parallelism.TaskExecutor.TaskListener.html" title="edu.duke.cs.osprey.parallelism.TaskExecutor$TaskListener"><code class="xref java java-ref docutils literal"><span class="pre">TaskListener</span></code></a> &lt; <a class="reference internal" href="api.energy.EnergyCalculator.EnergiedParametricMolecule.html" title="edu.duke.cs.osprey.energy.EnergyCalculator$EnergiedParametricMolecule"><code class="xref java java-ref docutils literal"><span class="pre">EnergiedParametricMolecule</span></code></a> &gt;) – Callback function that will receive the energy and the associated molecule pose. The callback is called on a listener thread which is separate from the calling thread.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+            
+        </div>
+        <div class="clearfix"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Osprey 3.0-beta1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+<script type="text/javascript">
+  $("#mobile-toggle a").click(function () {
+    $("#left-column").toggle();
+  });
+</script>
+<script type="text/javascript" src="_static/js/bootstrap.js"></script>
+  <div class="footer">
+    &copy; Copyright 2017, Donald Lab, Department of Computer Science, Duke University. Created using <a href="http://sphinx.pocoo.org/">Sphinx</a>.
+  </div>
+  </body>
+</html>

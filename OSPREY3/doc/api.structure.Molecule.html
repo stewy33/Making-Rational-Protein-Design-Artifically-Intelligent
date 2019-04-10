@@ -1,0 +1,422 @@
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  
+  <!-- Licensed under the Apache 2.0 License -->
+  <link rel="stylesheet" type="text/css" href="_static/fonts/open-sans/stylesheet.css" />
+  <!-- Licensed under the SIL Open Font License -->
+  <link rel="stylesheet" type="text/css" href="_static/fonts/source-serif-pro/source-serif-pro.css" />
+  <link rel="stylesheet" type="text/css" href="_static/css/bootstrap.min.css" />
+  <link rel="stylesheet" type="text/css" href="_static/css/bootstrap-theme.min.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+    <title>Molecule &#8212; Osprey 3.0-beta1 documentation</title>
+    <link rel="stylesheet" href="_static/guzzle.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/style.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '3.0-beta1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+  
+   
+
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Osprey 3.0-beta1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="container-wrapper">
+
+      <div id="mobile-toggle">
+        <a href="#"><span class="glyphicon glyphicon-align-justify" aria-hidden="true"></span></a>
+      </div>
+  <div id="left-column">
+    <div class="sphinxsidebar">
+        <a href="
+    index.html" class="text-logo">Osprey 3.0-beta1 documentation</a>
+        
+<div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <h2>Table Of Contents</h2>
+  </div>
+  <div class="sidebar-toc">
+    
+    
+      <ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.osprey.html">API reference</a></li>
+</ul>
+
+    
+  </div>
+</div>
+        
+<div class="sidebar-block">
+  <div class="sidebar-wrapper">
+    <div id="main-search">
+      <form class="form-inline" action="search.html" method="GET" role="form">
+        <div class="input-group">
+          <input name="q" type="text" class="form-control" placeholder="Search...">
+        </div>
+        <input type="hidden" name="check_keywords" value="yes" />
+        <input type="hidden" name="area" value="default" />
+      </form>
+    </div>
+  </div>
+</div>
+    </div>
+  </div>
+        <div id="right-column">
+          
+          <div role="navigation" aria-label="breadcrumbs navigation">
+            <ol class="breadcrumb">
+              <li><a href="index.html">Docs</a></li>
+              
+              <li>Molecule</li>
+            </ol>
+          </div>
+          
+          <div class="document clearer body">
+            
+  <div class="section" id="molecule">
+<h1>Molecule<a class="headerlink" href="#molecule" title="Permalink to this headline">¶</a></h1>
+<p>Java class: <code class="docutils literal"><span class="pre">edu.duke.cs.osprey.structure.Molecule</span></code></p>
+<div class="section" id="constructors">
+<h2>Constructors<a class="headerlink" href="#constructors" title="Permalink to this headline">¶</a></h2>
+<p><em>This is a Java class which has been exposed to the Python API. For more information
+on how to call constructors on Java objects, see the tutorial:</em> <a class="reference internal" href="constructors.html#constructors"><span class="std std-ref">Accessing Java Classes from Python</span></a>.</p>
+<hr class="docutils" />
+<dl class="method">
+<dt id="Molecule.Molecule">
+<code class="descclassname">Molecule.</code><code class="descname">Molecule</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Molecule.Molecule" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descclassname">Molecule.</code><code class="descname">Molecule</code><span class="sig-paren">(</span><em>residues</em><span class="sig-paren">)</span></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>residues</strong> (<a class="reference internal" href="api.structure.Residues.html" title="edu.duke.cs.osprey.structure.Residues"><code class="xref java java-ref docutils literal"><span class="pre">Residues</span></code></a>) – </td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descclassname">Molecule.</code><code class="descname">Molecule</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>other</strong> (<a class="reference internal" href="#" title="edu.duke.cs.osprey.structure.Molecule"><code class="xref java java-ref docutils literal"><span class="pre">Molecule</span></code></a>) – </td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descclassname">Molecule.</code><code class="descname">Molecule</code><span class="sig-paren">(</span><em>other</em>, <em>redoInterResBonds</em><span class="sig-paren">)</span></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>other</strong> (<a class="reference internal" href="#" title="edu.duke.cs.osprey.structure.Molecule"><code class="xref java java-ref docutils literal"><span class="pre">Molecule</span></code></a>) – </li>
+<li><strong>redoInterResBonds</strong> (<em>bool</em>) – </li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="properties">
+<h2>Properties<a class="headerlink" href="#properties" title="Permalink to this headline">¶</a></h2>
+<dl class="attribute">
+<dt id="Molecule.residues">
+<code class="descclassname">Molecule.</code><code class="descname">residues</code><a class="headerlink" href="#Molecule.residues" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body"><a class="reference internal" href="api.structure.Residues.html" title="edu.duke.cs.osprey.structure.Residues"><code class="xref java java-ref docutils literal"><span class="pre">Residues</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="methods">
+<h2>Methods<a class="headerlink" href="#methods" title="Permalink to this headline">¶</a></h2>
+<dl class="method">
+<dt id="Molecule.getResByPDBResNumber">
+<code class="descclassname">Molecule.</code><code class="descname">getResByPDBResNumber</code><span class="sig-paren">(</span><em>resNum</em><span class="sig-paren">)</span><a class="headerlink" href="#Molecule.getResByPDBResNumber" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>resNum</strong> (<code class="docutils literal"><span class="pre">str</span></code>) – </td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="api.structure.Residue.html" title="edu.duke.cs.osprey.structure.Residue"><code class="xref java java-ref docutils literal"><span class="pre">Residue</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Molecule.getResByPDBResNumberOrNull">
+<code class="descclassname">Molecule.</code><code class="descname">getResByPDBResNumberOrNull</code><span class="sig-paren">(</span><em>resNum</em><span class="sig-paren">)</span><a class="headerlink" href="#Molecule.getResByPDBResNumberOrNull" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>resNum</strong> (<code class="docutils literal"><span class="pre">str</span></code>) – </td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="api.structure.Residue.html" title="edu.duke.cs.osprey.structure.Residue"><code class="xref java java-ref docutils literal"><span class="pre">Residue</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Molecule.getResRangeByPDBResNumber">
+<code class="descclassname">Molecule.</code><code class="descname">getResRangeByPDBResNumber</code><span class="sig-paren">(</span><em>firstResNum</em>, <em>lastResNum</em><span class="sig-paren">)</span><a class="headerlink" href="#Molecule.getResRangeByPDBResNumber" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>firstResNum</strong> (<code class="docutils literal"><span class="pre">str</span></code>) – </li>
+<li><strong>lastResNum</strong> (<code class="docutils literal"><span class="pre">str</span></code>) – </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><code class="docutils literal"><code class="xref java java-ref docutils literal"><span class="pre">List</span></code></code> &lt; <a class="reference internal" href="api.structure.Residue.html" title="edu.duke.cs.osprey.structure.Residue"><code class="xref java java-ref docutils literal"><span class="pre">Residue</span></code></a> &gt;</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Molecule.getResiduesByPDBResNumbers">
+<code class="descclassname">Molecule.</code><code class="descname">getResiduesByPDBResNumbers</code><span class="sig-paren">(</span><em>resNums</em><span class="sig-paren">)</span><a class="headerlink" href="#Molecule.getResiduesByPDBResNumbers" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>resNums</strong> (<code class="docutils literal"><span class="pre">Iterable</span></code> &lt; <code class="docutils literal"><span class="pre">str</span></code> &gt;) – </td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal"><code class="xref java java-ref docutils literal"><span class="pre">List</span></code></code> &lt; <a class="reference internal" href="api.structure.Residue.html" title="edu.duke.cs.osprey.structure.Residue"><code class="xref java java-ref docutils literal"><span class="pre">Residue</span></code></a> &gt;</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descclassname">Molecule.</code><code class="descname">getResiduesByPDBResNumbers</code><span class="sig-paren">(</span><em>resNums</em><span class="sig-paren">)</span></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>resNums</strong> (<code class="docutils literal"><code class="xref java java-ref docutils literal"><span class="pre">Set</span></code></code> &lt; <code class="docutils literal"><span class="pre">str</span></code> &gt;) – </td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal"><code class="xref java java-ref docutils literal"><span class="pre">List</span></code></code> &lt; <a class="reference internal" href="api.structure.Residue.html" title="edu.duke.cs.osprey.structure.Residue"><code class="xref java java-ref docutils literal"><span class="pre">Residue</span></code></a> &gt;</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Molecule.appendResidue">
+<code class="descclassname">Molecule.</code><code class="descname">appendResidue</code><span class="sig-paren">(</span><em>res</em><span class="sig-paren">)</span><a class="headerlink" href="#Molecule.appendResidue" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>res</strong> (<a class="reference internal" href="api.structure.Residue.html" title="edu.duke.cs.osprey.structure.Residue"><code class="xref java java-ref docutils literal"><span class="pre">Residue</span></code></a>) – </td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Molecule.addAlternate">
+<code class="descclassname">Molecule.</code><code class="descname">addAlternate</code><span class="sig-paren">(</span><em>resIndex</em>, <em>res</em><span class="sig-paren">)</span><a class="headerlink" href="#Molecule.addAlternate" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>resIndex</strong> (<em>int</em>) – </li>
+<li><strong>res</strong> (<a class="reference internal" href="api.structure.Residue.html" title="edu.duke.cs.osprey.structure.Residue"><code class="xref java java-ref docutils literal"><span class="pre">Residue</span></code></a>) – </li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Molecule.getAlternates">
+<code class="descclassname">Molecule.</code><code class="descname">getAlternates</code><span class="sig-paren">(</span><em>resIndex</em><span class="sig-paren">)</span><a class="headerlink" href="#Molecule.getAlternates" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>resIndex</strong> (<em>int</em>) – </td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal"><code class="xref java java-ref docutils literal"><span class="pre">List</span></code></code> &lt; <a class="reference internal" href="api.structure.Residue.html" title="edu.duke.cs.osprey.structure.Residue"><code class="xref java java-ref docutils literal"><span class="pre">Residue</span></code></a> &gt;</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Molecule.deleteResidue">
+<code class="descclassname">Molecule.</code><code class="descname">deleteResidue</code><span class="sig-paren">(</span><em>resIndex</em><span class="sig-paren">)</span><a class="headerlink" href="#Molecule.deleteResidue" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>resIndex</strong> (<em>int</em>) – </td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Molecule.deleteResidues">
+<code class="descclassname">Molecule.</code><code class="descname">deleteResidues</code><span class="sig-paren">(</span><em>resNames</em><span class="sig-paren">)</span><a class="headerlink" href="#Molecule.deleteResidues" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>resNames</strong> (<code class="docutils literal"><code class="xref java java-ref docutils literal"><span class="pre">Collection</span></code></code> &lt; <code class="docutils literal"><span class="pre">str</span></code> &gt;) – </td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Molecule.resListFromTermini">
+<code class="descclassname">Molecule.</code><code class="descname">resListFromTermini</code><span class="sig-paren">(</span><em>termini</em>, <em>flexibleRes</em><span class="sig-paren">)</span><a class="headerlink" href="#Molecule.resListFromTermini" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>termini</strong> (<code class="docutils literal"><span class="pre">str</span></code> []) – </li>
+<li><strong>flexibleRes</strong> (<code class="docutils literal"><code class="xref java java-ref docutils literal"><span class="pre">ArrayList</span></code></code> &lt; <code class="docutils literal"><span class="pre">str</span></code> &gt;) – </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><code class="docutils literal"><code class="xref java java-ref docutils literal"><span class="pre">ArrayList</span></code></code> &lt; <a class="reference internal" href="api.structure.Residue.html" title="edu.duke.cs.osprey.structure.Residue"><code class="xref java java-ref docutils literal"><span class="pre">Residue</span></code></a> &gt;</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Molecule.hashCode">
+<code class="descclassname">Molecule.</code><code class="descname">hashCode</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Molecule.hashCode" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">int</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Molecule.getResByFullName">
+<code class="descclassname">Molecule.</code><code class="descname">getResByFullName</code><span class="sig-paren">(</span><em>fullName</em><span class="sig-paren">)</span><a class="headerlink" href="#Molecule.getResByFullName" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fullName</strong> (<code class="docutils literal"><span class="pre">str</span></code>) – </td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="api.structure.Residue.html" title="edu.duke.cs.osprey.structure.Residue"><code class="xref java java-ref docutils literal"><span class="pre">Residue</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="Molecule.markInterResBonds">
+<code class="descclassname">Molecule.</code><code class="descname">markInterResBonds</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#Molecule.markInterResBonds" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+</div>
+<div class="admonition-todo admonition" id="index-0">
+<p class="first admonition-title">Todo</p>
+<p class="last">docme!</p>
+</div>
+
+
+          </div>
+            
+        </div>
+        <div class="clearfix"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Osprey 3.0-beta1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+<script type="text/javascript">
+  $("#mobile-toggle a").click(function () {
+    $("#left-column").toggle();
+  });
+</script>
+<script type="text/javascript" src="_static/js/bootstrap.js"></script>
+  <div class="footer">
+    &copy; Copyright 2017, Donald Lab, Department of Computer Science, Duke University. Created using <a href="http://sphinx.pocoo.org/">Sphinx</a>.
+  </div>
+  </body>
+</html>
