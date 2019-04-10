@@ -1,8 +1,39 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
+** This file is part of OSPREY 3.0
+** 
+** OSPREY Protein Redesign Software Version 3.0
+** Copyright (C) 2001-2018 Bruce Donald Lab, Duke University
+** 
+** OSPREY is free software: you can redistribute it and/or modify
+** it under the terms of the GNU General Public License version 2
+** as published by the Free Software Foundation.
+** 
+** You should have received a copy of the GNU General Public License
+** along with OSPREY.  If not, see <http://www.gnu.org/licenses/>.
+** 
+** OSPREY relies on grants for its development, and since visibility
+** in the scientific literature is essential for our success, we
+** ask that users of OSPREY cite our papers. See the CITING_OSPREY
+** document in this distribution for more information.
+** 
+** Contact Info:
+**    Bruce Donald
+**    Duke University
+**    Department of Computer Science
+**    Levine Science Research Center (LSRC)
+**    Durham
+**    NC 27708-0129
+**    USA
+**    e-mail: www.cs.duke.edu/brd/
+** 
+** <signature of Bruce Donald>, Mar 1, 2018
+** Bruce Donald, Professor of Computer Science
+*/
+
 package edu.duke.cs.osprey.confspace;
+
+import edu.duke.cs.osprey.astar.conf.ConfIndex;
+import edu.duke.cs.osprey.tools.HashCalculator;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -45,7 +76,19 @@ public class RCTuple implements Serializable {
     	this();
     	set(pos1, RC1, pos2, RC2);
     }
-    
+
+    // a triple
+	public RCTuple(int pos1, int rc1, int pos2, int rc2, int pos3, int rc3) {
+    	this();
+    	set(pos1, rc1, pos2, rc2, pos3, rc3);
+	}
+
+	// a quad
+	public RCTuple(int pos1, int rc1, int pos2, int rc2, int pos3, int rc3, int pos4, int rc4) {
+		this();
+		set(pos1, rc1, pos2, rc2, pos3, rc3, pos4, rc4);
+	}
+
     //Sometimes we'll want to generate an RC tuple from a conformation, specified as RCs for all positions
     //in order.  
     //In this case, negative values are not (fully) defined, so the tuple contains all positions
@@ -54,16 +97,23 @@ public class RCTuple implements Serializable {
     	this();
     	set(conf);
     }
+
+    public RCTuple(ConfIndex index) {
+    	this();
+    	set(index);
+	}
     
-    public void set(int pos, int rc) {
+    public RCTuple set(int pos, int rc) {
     	this.pos.clear();
     	this.RCs.clear();
     	
         this.pos.add(pos);
         this.RCs.add(rc);
+
+        return this;
     }
     
-    public void set(int pos1, int rc1, int pos2, int rc2) {
+    public RCTuple set(int pos1, int rc1, int pos2, int rc2) {
     	this.pos.clear();
     	this.RCs.clear();
     	
@@ -72,9 +122,46 @@ public class RCTuple implements Serializable {
         
         this.pos.add(pos2);
         this.RCs.add(rc2);
+
+        return this;
     }
-    
-    public void set(int[] conf) {
+
+	public RCTuple set(int pos1, int rc1, int pos2, int rc2, int pos3, int rc3) {
+		this.pos.clear();
+		this.RCs.clear();
+
+		this.pos.add(pos1);
+		this.RCs.add(rc1);
+
+		this.pos.add(pos2);
+		this.RCs.add(rc2);
+
+		this.pos.add(pos3);
+		this.RCs.add(rc3);
+
+		return this;
+	}
+
+	public RCTuple set(int pos1, int rc1, int pos2, int rc2, int pos3, int rc3, int pos4, int rc4) {
+		this.pos.clear();
+		this.RCs.clear();
+
+		this.pos.add(pos1);
+		this.RCs.add(rc1);
+
+		this.pos.add(pos2);
+		this.RCs.add(rc2);
+
+		this.pos.add(pos3);
+		this.RCs.add(rc3);
+
+		this.pos.add(pos4);
+		this.RCs.add(rc4);
+
+		return this;
+	}
+
+	public void set(int[] conf) {
     	pos.clear();
     	RCs.clear();
         for(int posNum=0; posNum<conf.length; posNum++){
@@ -91,13 +178,25 @@ public class RCTuple implements Serializable {
     	pos.addAll(other.pos);
     	RCs.addAll(other.RCs);
     }
+
+    public void set(ConfIndex index) {
+    	pos.clear();
+    	RCs.clear();
+    	for (int i=0; i<index.numDefined; i++) {
+    		pos.add(index.definedPos[i]);
+    		RCs.add(index.definedRCs[i]);
+		}
+	}
     
     public int size() {
     	return pos.size();
     }
-    
-    
-    public boolean isSameTuple(RCTuple tuple2){
+
+
+	/**
+	 * returns true if they are the same tuple AND if positions are in the same order
+	 */
+	public boolean isSameTuple(RCTuple tuple2){
     	
     	// short circuit: same instance must have same value
     	if (this == tuple2) {
@@ -164,4 +263,96 @@ public class RCTuple implements Serializable {
         
         return new RCTuple(newPos,newRCs);
     }
+
+    @Override
+	public int hashCode() {
+		return HashCalculator.combineHashes(
+			pos.hashCode(),
+			RCs.hashCode()
+		);
+	}
+
+	@Override
+	public boolean equals(Object other) {
+    	return other instanceof RCTuple && equals((RCTuple)other);
+	}
+
+	public boolean equals(RCTuple other) {
+    	return isSameTuple(other);
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder buf = new StringBuilder();
+		buf.append("[");
+		for (int i=0; i<size(); i++) {
+			if (i > 0) {
+				buf.append(",");
+			}
+			buf.append(pos.get(i));
+			buf.append("=");
+			buf.append(RCs.get(i));
+		}
+		buf.append("]");
+		return buf.toString();
+	}
+
+	public void sortPositions() {
+
+		// sort the positions using a simple insertion sort
+		// tuples are always small (n << 100), so insertion sort should be fast enough
+		// NOTE: we need to sort two arrays simultaneously, so we can't use any library sorts
+		int n = size();
+		for (int i=1; i<n; i++) {
+
+			int tempPos = pos.get(i);
+			int tempRC = RCs.get(i);
+
+			int j;
+			for (j=i; j>=1 && tempPos < pos.get(j-1); j--) {
+				pos.set(j, pos.get(j-1));
+				RCs.set(j, RCs.get(j-1));
+			}
+			pos.set(j, tempPos);
+			RCs.set(j, tempRC);
+		}
+	}
+
+	public RCTuple sorted() {
+		sortPositions();
+		return this;
+	}
+
+	public void checkSortedPositions() {
+		for (int i=1; i<pos.size(); i++) {
+			if (pos.get(i) <= pos.get(i - 1)) {
+				throw new IllegalStateException("RCTuple positions are not sorted");
+			}
+		}
+	}
+
+	public RCTuple intersect(RCTuple other) {
+		return RCTuple.intersect(this, other);
+	}
+
+	public static RCTuple intersect(RCTuple first, RCTuple second) {
+		RCTuple out = new RCTuple();
+		for(int tupIndex = 0; tupIndex < first.size(); tupIndex++)
+		{
+			int firstPos = first.pos.get(tupIndex);
+			int firstRC  = first.RCs.get(tupIndex);
+			if(second.pos.contains(firstPos) && second.RCs.get(tupIndex) == firstRC)
+				out = out.addRC(firstPos, firstRC);
+		}
+		return out;
+	}
+
+	public Integer getRC(int index) {
+		for (int i=0; i<size(); i++) {
+			if (pos.get(i) == index) {
+				return RCs.get(i);
+			}
+		}
+		return null;
+	}
 }

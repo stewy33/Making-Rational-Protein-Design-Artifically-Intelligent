@@ -1,12 +1,39 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
+** This file is part of OSPREY 3.0
+** 
+** OSPREY Protein Redesign Software Version 3.0
+** Copyright (C) 2001-2018 Bruce Donald Lab, Duke University
+** 
+** OSPREY is free software: you can redistribute it and/or modify
+** it under the terms of the GNU General Public License version 2
+** as published by the Free Software Foundation.
+** 
+** You should have received a copy of the GNU General Public License
+** along with OSPREY.  If not, see <http://www.gnu.org/licenses/>.
+** 
+** OSPREY relies on grants for its development, and since visibility
+** in the scientific literature is essential for our success, we
+** ask that users of OSPREY cite our papers. See the CITING_OSPREY
+** document in this distribution for more information.
+** 
+** Contact Info:
+**    Bruce Donald
+**    Duke University
+**    Department of Computer Science
+**    Levine Science Research Center (LSRC)
+**    Durham
+**    NC 27708-0129
+**    USA
+**    e-mail: www.cs.duke.edu/brd/
+** 
+** <signature of Bruce Donald>, Mar 1, 2018
+** Bruce Donald, Professor of Computer Science
+*/
+
 package edu.duke.cs.osprey.structure;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.*;
 
 import edu.duke.cs.osprey.dof.ProlinePucker;
 import edu.duke.cs.osprey.energy.forcefield.ForcefieldParams;
@@ -17,8 +44,10 @@ import edu.duke.cs.osprey.restypes.ResidueTemplateLibrary;
 import edu.duke.cs.osprey.tools.Protractor;
 import edu.duke.cs.osprey.tools.StringParsing;
 import edu.duke.cs.osprey.tools.VectorAlgebra;
-import java.util.BitSet;
-import java.util.List;
+
+import java.util.stream.Collectors;
+
+import static edu.duke.cs.osprey.tools.Log.log;
 
 /**
  *
@@ -34,6 +63,7 @@ public class Residue implements Serializable {
     
     //residue information
     public String fullName;//short name is the first three characters of this
+	                       // eg "ASN A  23"
     
     public int indexInMolecule = -1;//index of this residue in the molecule it's in
     public Molecule molec;//the molecule it's in
@@ -144,7 +174,59 @@ public class Residue implements Serializable {
             atoms.get(a).indexInRes = a;
         }
     }
-    
+
+    /**
+	 * An optimized copy method
+	 * (profiling shows the usual constructors are a bit slow)
+	 */
+    public Residue copyToMol(Molecule mol, boolean copyIntraBonds) {
+    	Residue copy = new Residue();
+
+		// copy the simple properties
+		copy.fullName = this.fullName;
+		copy.resNum = this.resNum;
+		copy.template = this.template;
+		copy.confProblems = new ArrayList<>(this.confProblems);
+		copy.pucker = this.pucker;
+		copy.secondaryStruct = this.secondaryStruct;
+
+		// copy the atoms
+		copy.atoms = new ArrayList<>();
+		for (Atom atom : this.atoms) {
+			atom.copyToRes(copy);
+		}
+
+		// copy the bonds if needed
+		if (copyIntraBonds) {
+			for (int i=0; i<this.atoms.size(); i++) {
+				Atom thisAtom = this.atoms.get(i);
+				Atom copyAtom = copy.atoms.get(i);
+				for (Atom thisBondedAtom : thisAtom.bonds) {
+					copyAtom.bonds.add(copy.atoms.get(thisBondedAtom.indexInRes));
+				}
+			}
+			copy.intraResBondsMarked = this.intraResBondsMarked;
+		} else {
+			copy.intraResBondsMarked = false;
+		}
+
+		// copy the coords
+		copy.coords = Arrays.copyOf(this.coords, this.coords.length);
+
+		// NOTE: we don't copy inter-res atom bonds, so the molecule will have to re-bond everything
+
+		// put the copy res in the mol
+		copy.molec = mol;
+		copy.indexInMolecule = mol.residues.size();
+		mol.residues.add(copy);
+
+		return copy;
+	}
+
+	// private constructor just for the optimized copyToMol() method,
+	// so we can bypass the other slower constructors without breaking existing code
+	private Residue() {}
+
     // cache res numbers for performance
     // they're used a LOT and profiling shows this is actually a performance bottleneck!
     private String resNum = null;
@@ -169,6 +251,10 @@ public class Residue implements Serializable {
     public char getChainId() {
         return fullName.charAt(4);
     }
+
+    public String getType() {
+    	return fullName.substring(0, 3).trim();
+	}
     
     public boolean assignTemplate(ResidueTemplateLibrary templateLib) {
         //assign a template to this residue if possible, using the ResidueTemplateLibrary
@@ -212,10 +298,91 @@ public class Residue implements Serializable {
         bestMatching.assign();
         return true;//matched successfully!
     }
-    
-    
-    
-    public void markIntraResBondsByTemplate(){
+
+	public void assignTemplateSimple(ResidueTemplateLibrary templateLib) {
+    	assignTemplateSimple(templateLib, getType());
+	}
+
+	/**
+	 * A much simpler template assigner that works only with atom names.
+	 * Doesn't require coords to match templates, and hence is completely immune to bugs
+	 * caused by mis-matched atoms, say, due to issues with stereochemistries.
+	 * Important for accurately assigning templates to structures in the top8000 dataset.
+	 */
+	public void assignTemplateSimple(ResidueTemplateLibrary templateLib, String type) {
+
+		// assign a template without fuzzy matching
+		List<ResidueTemplate> templateCandidates = templateLib.templates.stream()
+			.filter(templ ->
+				templ.name.equals(type)
+				&& templ.templateRes.atoms.size() == atoms.size()
+			)
+			.collect(Collectors.toList());
+		ResidueTemplate template;
+		if (templateCandidates.isEmpty()) {
+			return;
+		} else if (templateCandidates.size() == 1) {
+			template = templateCandidates.get(0);
+		} else {
+			log("warning: too many templates (%d) for %s", templateCandidates.size(), fullName);
+			return;
+		}
+
+		// mangle the residue atom names a bit to increase chances of matching a template
+		List<String> atomNames = atoms.stream()
+			.map(atom -> {
+
+				String name = atom.name;
+
+				// map eg 1H3 to H31
+				if (Character.isDigit(name.charAt(0))) {
+					name = name.substring(1) + name.substring(0, 1);
+				}
+
+				return name;
+			})
+			.collect(Collectors.toList());
+
+		// make sure atom names match the template exactly
+		for (String atomName : atomNames) {
+			if (template.templateRes.getAtomByName(atomName) == null) {
+				log("warning: no atoms match for %s\n\tres:   %s\n\ttempl: %s",
+					fullName,
+					atoms.stream().map(a -> a.name).sorted(Comparator.naturalOrder()).collect(Collectors.toList()),
+					template.templateRes.atoms.stream().map(a -> a.name).sorted(Comparator.naturalOrder()).collect(Collectors.toList())
+				);
+				return;
+			}
+		}
+
+		// keep track of (mapped) atom names and coords
+		Map<String,double[]> coords = new HashMap<>();
+		for (int i=0; i<atoms.size(); i++) {
+			coords.put(atomNames.get(i), atoms.get(i).getCoords());
+		}
+
+		// assign the template
+		this.template = template;
+
+		// copy atoms from template
+		ArrayList<Atom> newAtoms = new ArrayList<>();
+		for (Atom atom : template.templateRes.atoms) {
+			Atom newAtom = atom.copy();
+			newAtom.res = this;
+			newAtoms.add(newAtom);
+		}
+		atoms = newAtoms;
+		markIntraResBondsByTemplate();
+
+		// copy coords back to res array
+		for (Atom atom : atoms) {
+			double[] p = coords.get(atom.name);
+			atom.setCoords(p[0], p[1], p[2]);
+		}
+	}
+
+
+	public void markIntraResBondsByTemplate(){
         //assign all the bonds between atoms in this residue, based on the template
 
         

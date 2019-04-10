@@ -1,13 +1,43 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
+** This file is part of OSPREY 3.0
+** 
+** OSPREY Protein Redesign Software Version 3.0
+** Copyright (C) 2001-2018 Bruce Donald Lab, Duke University
+** 
+** OSPREY is free software: you can redistribute it and/or modify
+** it under the terms of the GNU General Public License version 2
+** as published by the Free Software Foundation.
+** 
+** You should have received a copy of the GNU General Public License
+** along with OSPREY.  If not, see <http://www.gnu.org/licenses/>.
+** 
+** OSPREY relies on grants for its development, and since visibility
+** in the scientific literature is essential for our success, we
+** ask that users of OSPREY cite our papers. See the CITING_OSPREY
+** document in this distribution for more information.
+** 
+** Contact Info:
+**    Bruce Donald
+**    Duke University
+**    Department of Computer Science
+**    Levine Science Research Center (LSRC)
+**    Durham
+**    NC 27708-0129
+**    USA
+**    e-mail: www.cs.duke.edu/brd/
+** 
+** <signature of Bruce Donald>, Mar 1, 2018
+** Bruce Donald, Professor of Computer Science
+*/
+
 package edu.duke.cs.osprey.restypes;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import edu.duke.cs.osprey.structure.Atom;
 import edu.duke.cs.osprey.structure.Residue;
@@ -107,7 +137,7 @@ public class ResidueTemplate implements Serializable {
         //initializes only with info from a template file, +interResBonding (and CAEquivalent if want to mutate)
         //res won't even have coordinates yet
         templateRes = res;
-        this.name = name;
+        this.name = name; // TODO: should we force this to be upper case?
         this.CAEquivalent = CAEquivalent;
         interResBonding = templ;
     }
@@ -324,4 +354,20 @@ public class ResidueTemplate implements Serializable {
         // there are tons of templates with the same name, so add the hash id too
         return name + ":" + System.identityHashCode(this);
     }
+
+	public String getDescription() {
+    	StringBuilder buf = new StringBuilder();
+
+    	buf.append(name);
+
+    	// add the atom list
+		buf.append(" [");
+		buf.append(String.join(",", templateRes.atoms.stream()
+			.map(atom -> atom.name)
+			.collect(Collectors.toList()))
+		);
+		buf.append("]");
+
+		return buf.toString();
+	}
 }

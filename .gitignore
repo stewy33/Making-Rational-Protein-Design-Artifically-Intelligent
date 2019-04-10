@@ -19,6 +19,7 @@ bin
 # IDEA things
 .idea
 *.iml
+out
 
 # Gradle things
 .gradle

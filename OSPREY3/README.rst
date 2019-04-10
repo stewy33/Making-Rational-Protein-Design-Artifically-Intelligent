@@ -12,12 +12,29 @@ at `Duke University`_.
 .. _Department of Computer Science: http://www.cs.duke.edu
 .. _Duke University: https://www.duke.edu/
 
+For an introduction to OSPREY 3.0 and its new features please read this paper: 
 
-Development Version
-~~~~~~~~~~~~~~~~~~~
+*Journal of Computational Chemistry* 2018; 39(30): 2494-2507 `Cover article`_.
 
-This is the development version of Osprey. For stable versions, please visit:
-http://www.cs.duke.edu/donaldlab/osprey.php
+.. _Cover article: http://www.cs.duke.edu/brd/papers/jcc18-osprey3point0/cover-jcc.25043.pdf
+
+Available here:
+
+`Journal of Computational Chemistry`_.
+
+`Cover Image \(Osprey)`_ 
+
+`PDF of paper`_
+
+.. _Journal of Computational Chemistry: https://onlinelibrary.wiley.com/doi/10.1002/jcc.25522
+.. _Cover Image (Osprey): http://www.cs.duke.edu/brd/papers/jcc18-osprey3point0/cover-jcc.25043.pdf
+.. _PDF of paper: http://www.cs.duke.edu/brd/papers/jcc18-osprey3point0/jcc18-osprey-donald.pdf
+
+
+
+Citation requirements
+~~~~~~~
+We require everyone who publishes or presents results from OSPREY to please mention the name "OSPREY," and to cite our papers as described in CITING_OSPREY.txt (especially our new paper introducing OSPREY 3.0). 
 
 
 License
@@ -57,13 +74,14 @@ Make sure you're running 64-bit Windows. Osprey is not supported on 32-bit Windo
  4. After installing Java, add the ``C:\Program Files\Java\jre1.8.0_151\bin`` folder to your ``PATH`` environment variable.
     (`See how to set the PATH Environment Variable`_) Be sure to replace the ``jre1.8.0_151`` part with the actual Java
     installation folder on your computer. Tragically, the Java installer does not do this for you.
- 5. Download the Osprey Python distribution zip, extract it to your favorite folder.
+ 5. Download the `newest Osprey Python release`_ (not the source files) and extract it to your favorite folder.
  6. Run the ``install`` batch script to install Osprey.
 
 .. _Python 2.7 x86-64: https://www.python.org/downloads/release/python-2714/
 .. _pip: https://pip.pypa.io/en/stable/
 .. _Java 8 64-bit: https://www.java.com/en/download/manual.jsp
 .. _See how to set the PATH Environment Variable: https://www.java.com/EN/DOWNLOAD/HELP/PATH.XML
+.. _newest Osprey Python release: https://github.com/donaldlab/OSPREY_refactor/releases
 
 on Debian-like Linux:
 ---------------------
@@ -76,7 +94,7 @@ Make sure you're running 64-bit Linux. Osprey is not supported on 32-bit Linux.
 
 	$ sudo apt-get install python2.7 python-pip openjdk-8-jre
 
- 2. Download the Osprey Python distribution zip, extract it to your favorite folder.
+ 2. Download the `newest Osprey Python release`_ (not the source files) and extract it to your favorite folder.
  3. Run the install shell script to install Osprey::
 
  	$ ./install.sh
@@ -86,7 +104,8 @@ manually using ``pip``:
 -----------------------
 
 The install scripts use ``pip`` internally to install the Python package. If you want to customize
-the installation of the python package, you can ingore the install scripts and call ``pip`` directly::
+the installation of the python package, you can ingore the install scripts and call ``pip`` directly.
+First download the `newest Osprey Python release`_ and extract it to your favorite folder. Then call ``pip``::
 
 	$ pip2 install osprey --no-index --use-wheel --find-link=wheelhouse
 

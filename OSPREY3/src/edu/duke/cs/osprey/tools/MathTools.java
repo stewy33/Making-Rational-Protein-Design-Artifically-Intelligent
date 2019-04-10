@@ -1,12 +1,42 @@
+/*
+** This file is part of OSPREY 3.0
+** 
+** OSPREY Protein Redesign Software Version 3.0
+** Copyright (C) 2001-2018 Bruce Donald Lab, Duke University
+** 
+** OSPREY is free software: you can redistribute it and/or modify
+** it under the terms of the GNU General Public License version 2
+** as published by the Free Software Foundation.
+** 
+** You should have received a copy of the GNU General Public License
+** along with OSPREY.  If not, see <http://www.gnu.org/licenses/>.
+** 
+** OSPREY relies on grants for its development, and since visibility
+** in the scientific literature is essential for our success, we
+** ask that users of OSPREY cite our papers. See the CITING_OSPREY
+** document in this distribution for more information.
+** 
+** Contact Info:
+**    Bruce Donald
+**    Duke University
+**    Department of Computer Science
+**    Levine Science Research Center (LSRC)
+**    Durham
+**    NC 27708-0129
+**    USA
+**    e-mail: www.cs.duke.edu/brd/
+** 
+** <signature of Bruce Donald>, Mar 1, 2018
+** Bruce Donald, Professor of Computer Science
+*/
+
 package edu.duke.cs.osprey.tools;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.MathContext;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
+
 
 public class MathTools {
 	
@@ -197,6 +227,10 @@ public class MathTools {
 			return BigNegativeInfinity;
 		} else if (Double.isNaN(val)) {
 			return BigNaN;
+		} else if (val == 0.0) {
+			return BigDecimal.ZERO;
+		} else if (val == 1.0) {
+			return BigDecimal.ONE;
 		} else {
 			return BigDecimal.valueOf(val);
 		}
@@ -206,13 +240,47 @@ public class MathTools {
 		return new BigDecimal(val);
 	}
 
+	public static BigDecimalBounds biggen(double lower, double upper) {
+		return new BigDecimalBounds(biggen(lower), biggen(upper));
+	}
+
+	public static int compare(BigDecimal a, BigDecimal b) {
+		// a < b => -1
+		// a == b => 0
+		// a > b => 1
+		if (a == BigNaN || b == BigNaN) {
+			throw new IllegalArgumentException("can't compare NaN");
+		}
+		if (a == BigPositiveInfinity) {
+			if (b == BigPositiveInfinity) {
+				return 0;
+			} else {
+				return 1;
+			}
+		} else if (a == BigNegativeInfinity) {
+			if (b == BigNegativeInfinity) {
+				return 0;
+			} else {
+				return -1;
+			}
+		} else {
+			if (b == BigPositiveInfinity) {
+				return -1;
+			} else if (b == BigNegativeInfinity) {
+				return 1;
+			} else {
+				return a.compareTo(b);
+			}
+		}
+	}
+
 	/**
 	 * Tests for sameness of values,
 	 * rather than BigDecimal.equals(), which tests sameness of representation
 	 * (i.e., the same value can have multiple representations in BigDecimal)
 	 */
 	public static boolean isSameValue(BigDecimal a, BigDecimal b) {
-		return a == b || a.compareTo(b) == 0;
+		return a == b || compare(a, b) == 0;
 	}
 
 	public static boolean isAbsolutelySame(BigDecimal a, BigDecimal b, double epsilon) {
@@ -239,7 +307,7 @@ public class MathTools {
 	}
 
 	public static boolean isZero(BigDecimal d) {
-		return !isInf(d) && d.compareTo(BigDecimal.ZERO) == 0;
+		return d == BigDecimal.ZERO || (isFinite(d) && d.compareTo(BigDecimal.ZERO) == 0);
 	}
 
 	public static boolean isPositive(BigDecimal d) {
@@ -271,7 +339,7 @@ public class MathTools {
 	}
 
 	public static boolean isFinite(BigDecimal d) {
-		return !isInf(d) && d == BigNaN;
+		return !isInf(d) && !isNaN(d);
 	}
 
 	public static boolean isNaN(BigDecimal d) {
@@ -280,26 +348,7 @@ public class MathTools {
 
 	/** return a < b, correctly handling -Inf, +Inf, and NaN */
 	public static boolean isLessThan(BigDecimal a, BigDecimal b) {
-		if (a == BigNaN || b == BigNaN) {
-			throw new IllegalArgumentException("can't compare NaN");
-		}
-		if (a == BigPositiveInfinity) {
-			return false;
-		} else if (a == BigNegativeInfinity) {
-			if (b == BigNegativeInfinity) {
-				return false;
-			} else {
-				return true;
-			}
-		} else {
-			if (b == BigPositiveInfinity) {
-				return true;
-			} else if (b == BigNegativeInfinity) {
-				return false;
-			} else {
-				return a.compareTo(b) < 0;
-			}
-		}
+		return compare(a, b) == -1;
 	}
 
 	/** return a <= b, correctly handling -Inf, +Inf, and NaN */
@@ -309,31 +358,25 @@ public class MathTools {
 
 	/** return a > b, correctly handling -Inf, +Inf, and NaN */
 	public static boolean isGreaterThan(BigDecimal a, BigDecimal b) {
-		if (a == BigNaN || b == BigNaN) {
-			throw new IllegalArgumentException("can't compare NaN");
-		}
-		if (a == BigPositiveInfinity) {
-			if (b == BigPositiveInfinity) {
-				return false;
-			} else {
-				return true;
-			}
-		} else if (a == BigNegativeInfinity) {
-			return false;
-		} else {
-			if (b == BigPositiveInfinity) {
-				return false;
-			} else if (b == BigNegativeInfinity) {
-				return true;
-			} else {
-				return a.compareTo(b) > 0;
-			}
-		}
+		return compare(a, b) == 1;
 	}
 
 	/** return a >= b, correctly handling -Inf, +Inf, and NaN */
 	public static boolean isGreaterThanOrEqual(BigDecimal a, BigDecimal b) {
 		return isGreaterThan(a, b) || isSameValue(a, b);
+	}
+
+	/** return -a, correctly handling -Inf, +Inf, and NaN */
+	public static BigDecimal bigNegate(BigDecimal a) {
+		if (a == BigNaN) {
+			return BigNaN;
+		} else if (a == BigNegativeInfinity) {
+			return BigPositiveInfinity;
+		} else if (a == BigPositiveInfinity) {
+			return BigNegativeInfinity;
+		} else {
+			return a.negate();
+		}
 	}
 
 	/** return a + b, correctly handling -Inf, +Inf, and NaN */
@@ -394,47 +437,73 @@ public class MathTools {
 
 	/** return a*b, correctly handling -Inf, +Inf, and NaN */
 	public static BigDecimal bigMultiply(BigDecimal a, BigDecimal b, MathContext context) {
-		if (a == BigNaN || b == BigNaN) {
+		if (a == BigNaN) {
 			return BigNaN;
-		}
-		if (isZero(a) || isZero(b)) {
-			return BigDecimal.ZERO;
-		}
-		if (a == BigPositiveInfinity) {
-			if (b == BigNegativeInfinity) {
+		} else if (a == BigPositiveInfinity) {
+			if (b == BigNaN || b == BigNegativeInfinity) {
 				return BigNaN;
-			} else if (isPositive(b)) {
+			} else if (b == BigPositiveInfinity) {
 				return BigPositiveInfinity;
 			} else {
-				return BigNegativeInfinity;
+				int cmp = b.compareTo(BigDecimal.ZERO);
+				if (cmp == 0) {
+					return BigDecimal.ZERO;
+				} else if (cmp > 0) {
+					return BigPositiveInfinity;
+				} else {
+					return BigNegativeInfinity;
+				}
 			}
 		} else if (a == BigNegativeInfinity) {
-			if (b == BigPositiveInfinity) {
+			if (b == BigNaN || b == BigPositiveInfinity) {
 				return BigNaN;
-			} else if (isPositive(b)) {
-				return BigNegativeInfinity;
-			} else {
-				return BigPositiveInfinity;
-			}
-		} else if (isPositive(a)) {
-			if (b == BigPositiveInfinity) {
-				return BigPositiveInfinity;
 			} else if (b == BigNegativeInfinity) {
-				return BigNegativeInfinity;
+				return BigPositiveInfinity;
 			} else {
-				return a.multiply(b, context);
+				int cmp = b.compareTo(BigDecimal.ZERO);
+				if (cmp == 0) {
+					return BigDecimal.ZERO;
+				} else if (cmp > 0) {
+					return BigNegativeInfinity;
+				} else {
+					return BigPositiveInfinity;
+				}
 			}
 		} else {
-			if (b == BigPositiveInfinity) {
-				return BigNegativeInfinity;
+			if (b == BigNaN) {
+				return BigNaN;
+			} else if (b == BigPositiveInfinity) {
+				int cmp = a.compareTo(BigDecimal.ZERO);
+				if (cmp == 0) {
+					return BigDecimal.ZERO;
+				} else if (cmp > 0) {
+					return BigPositiveInfinity;
+				} else {
+					return BigNegativeInfinity;
+				}
 			} else if (b == BigNegativeInfinity) {
-				return BigPositiveInfinity;
+				int cmp = a.compareTo(BigDecimal.ZERO);
+				if (cmp == 0) {
+					return BigDecimal.ZERO;
+				} else if (cmp > 0) {
+					return BigNegativeInfinity;
+				} else {
+					return BigPositiveInfinity;
+				}
 			} else {
-				return a.multiply(b, context);
+				try {
+					return a.multiply(b, context);
+				} catch (ArithmeticException ex) {
+					if (ex.getMessage().equals("Underflow")) {
+						//log("WARN: multiplication underflows. Assuming %.4e * %.4e is just 0", a, b);
+						return BigDecimal.ZERO;
+					} else {
+						throw ex;
+					}
+				}
 			}
 		}
 	}
-	// TODO: test me!!!
 
 	/** return a/b, correctly handling -Inf, +Inf, and NaN */
 	public static BigDecimal bigDivide(BigDecimal a, BigDecimal b, MathContext context) {
@@ -482,7 +551,13 @@ public class MathTools {
 	 * whereas just log10 maps [0,inf] to [-inf,inf]
 	 **/
 	public static double log10p1(BigDecimal x) {
-		return Math.log10(x.add(BigDecimal.ONE).doubleValue());
+		if (x == BigPositiveInfinity) {
+			return Double.POSITIVE_INFINITY;
+		} else if (x == BigNegativeInfinity || x == BigNaN) {
+			return Double.NaN;
+		} else {
+			return Math.log10(x.add(BigDecimal.ONE).doubleValue());
+		}
 	}
 
 	public static double log10p1(double x) {
@@ -522,6 +597,383 @@ public class MathTools {
 			return String.format("%.1f PiB", pebibytes);
 		} else {
 			return String.format("%.0f PiB", pebibytes);
+		}
+	}
+
+	public static enum Optimizer {
+
+		Minimize {
+
+			@Override
+			public float initFloat() {
+				return Float.POSITIVE_INFINITY;
+			}
+
+			@Override
+			public double initDouble() {
+				return Double.POSITIVE_INFINITY;
+			}
+
+			@Override
+			public int initInt() {
+				return Integer.MAX_VALUE;
+			}
+
+			@Override
+			public long initLong() {
+				return Long.MAX_VALUE;
+			}
+
+			@Override
+			public BigDecimal initBigDecimal() {
+				return MathTools.BigPositiveInfinity;
+			}
+
+			@Override
+			public boolean isBetter(float newval, float oldval) {
+				return newval < oldval;
+			}
+
+			@Override
+			public boolean isBetter(double newval, double oldval) {
+				return newval < oldval;
+			}
+
+			@Override
+			public boolean isBetter(int newval, int oldval) {
+				return newval < oldval;
+			}
+
+			@Override
+			public boolean isBetter(long newval, long oldval) {
+				return newval < oldval;
+			}
+
+			@Override
+			public boolean isBetter(BigDecimal newval, BigDecimal oldval) {
+				return MathTools.isLessThan(newval, oldval);
+			}
+
+			@Override
+			public Optimizer reverse() {
+				return Maximize;
+			}
+		},
+
+		Maximize {
+
+			@Override
+			public float initFloat() {
+				return Float.NEGATIVE_INFINITY;
+			}
+
+			@Override
+			public double initDouble() {
+				return Double.NEGATIVE_INFINITY;
+			}
+
+			@Override
+			public int initInt() {
+				return Integer.MIN_VALUE;
+			}
+
+			@Override
+			public long initLong() {
+				return Long.MIN_VALUE;
+			}
+
+			@Override
+			public BigDecimal initBigDecimal() {
+				return MathTools.BigNegativeInfinity;
+			}
+
+			@Override
+			public boolean isBetter(float newval, float oldval) {
+				return newval > oldval;
+			}
+
+			@Override
+			public boolean isBetter(double newval, double oldval) {
+				return newval > oldval;
+			}
+
+			@Override
+			public boolean isBetter(int newval, int oldval) {
+				return newval > oldval;
+			}
+
+			@Override
+			public boolean isBetter(long newval, long oldval) {
+				return newval > oldval;
+			}
+
+			@Override
+			public boolean isBetter(BigDecimal newval, BigDecimal oldval) {
+				return MathTools.isGreaterThan(newval, oldval);
+			}
+
+			@Override
+			public Optimizer reverse() {
+				return Minimize;
+			}
+		};
+
+		public abstract float initFloat();
+		public abstract double initDouble();
+		public abstract int initInt();
+		public abstract long initLong();
+		public abstract BigDecimal initBigDecimal();
+
+		public float opt(float a, float b) {
+			return isBetter(a, b) ? a : b;
+		}
+
+		public double opt(double a, double b) {
+			return isBetter(a, b) ? a : b;
+		}
+
+		public int opt(int a, int b) {
+			return isBetter(a, b) ? a : b;
+		}
+
+		public long opt(long a, long b) {
+			return isBetter(a, b) ? a : b;
+		}
+
+		public BigDecimal opt(BigDecimal a, BigDecimal b) {
+			return isBetter(a, b) ? a : b;
+		}
+
+		public abstract boolean isBetter(float newval, float oldval);
+		public abstract boolean isBetter(double newval, double oldval);
+		public abstract boolean isBetter(int newval, int oldval);
+		public abstract boolean isBetter(long newval, long oldval);
+		public abstract boolean isBetter(BigDecimal newval, BigDecimal oldval);
+
+		public abstract Optimizer reverse();
+	}
+
+
+	public static class DoubleBounds {
+
+		public double lower;
+		public double upper;
+
+		public DoubleBounds() {
+			this(Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
+		}
+
+		public DoubleBounds(double lower, double upper) {
+			this.lower = lower;
+			this.upper = upper;
+		}
+
+		public void expand(double p) {
+			lower = Math.min(lower, p);
+			upper = Math.max(upper, p);
+		}
+
+		public double size() {
+			return upper - lower;
+		}
+
+		public boolean isValid() {
+			return lower <= upper;
+		}
+
+		public boolean contains(double val) {
+			return val >= lower && val <= upper;
+		}
+
+		public boolean contains(DoubleBounds val) {
+			return val.lower >= this.lower && val.upper <= this.upper;
+		}
+
+		@Override
+		public int hashCode() {
+			return HashCalculator.combineHashes(
+				Double.hashCode(lower),
+				Double.hashCode(upper)
+			);
+		}
+
+		@Override
+		public boolean equals(Object other) {
+			return other instanceof DoubleBounds && equals((DoubleBounds)other);
+		}
+
+		public boolean equals(DoubleBounds other) {
+			return this.lower == other.lower
+				&& this.upper == other.upper;
+		}
+
+		@Override
+		public String toString() {
+			return toString(null, null);
+		}
+
+		public String toString(int precision) {
+			return toString(precision, null);
+		}
+
+		public String toString(Integer precision, Integer width) {
+			String spec = "%" + (width != null ? width : "") + (precision != null ? "." + precision : "") + "f";
+			return String.format("[" + spec + "," + spec + "]", lower, upper);
+		}
+	}
+
+	public static class BigDecimalBounds {
+
+		public BigDecimal lower;
+		public BigDecimal upper;
+
+		public BigDecimalBounds() {
+			this(BigNegativeInfinity, BigPositiveInfinity);
+		}
+
+		public BigDecimalBounds(BigDecimalBounds other) {
+			this(other.lower, other.upper);
+		}
+
+		public BigDecimalBounds(BigDecimal lower, BigDecimal upper) {
+			this.lower = lower;
+			this.upper = upper;
+		}
+
+		public BigDecimalBounds(BigDecimal val) {
+			this(val, val);
+		}
+
+		public BigDecimalBounds(double lower, double upper) {
+			this(biggen(lower), biggen(upper));
+		}
+
+		public BigDecimal size(MathContext mathContext) {
+			return new BigMath(mathContext)
+				.set(upper)
+				.sub(lower)
+				.get();
+		}
+
+		public boolean isValid() {
+			return MathTools.isGreaterThanOrEqual(upper, lower);
+		}
+
+		public boolean contains(BigDecimal d) {
+			return MathTools.isGreaterThanOrEqual(d, lower)
+				&& MathTools.isLessThanOrEqual(d, upper);
+		}
+
+		public boolean contains(BigDecimalBounds d) {
+			return MathTools.isGreaterThanOrEqual(d.lower, lower)
+				&& MathTools.isLessThanOrEqual(d.upper, upper);
+		}
+
+		@Override
+		public boolean equals(Object other) {
+			return other instanceof BigDecimalBounds && equals((BigDecimalBounds)other);
+		}
+
+		public boolean equals(BigDecimalBounds other) {
+			return MathTools.isSameValue(this.lower, other.lower)
+				&& MathTools.isSameValue(this.upper, other.upper);
+		}
+
+		@Override
+		public int hashCode() {
+			return HashCalculator.combineHashes(
+				lower.hashCode(),
+				upper.hashCode()
+			);
+		}
+
+		@Override
+		public String toString() {
+			return String.format("[%e,%e]", lower, upper);
+		}
+	}
+
+	public static class BigIntegerBounds {
+
+		public BigInteger lower;
+		public BigInteger upper;
+
+		public BigIntegerBounds(BigInteger lower, BigInteger upper) {
+			this.lower = lower;
+			this.upper = upper;
+		}
+
+		@Override
+		public String toString() {
+			return String.format("[%d,%d]", lower, upper);
+		}
+	}
+
+	public static class GridIterable implements Iterable<int[]> {
+
+		public final int[] dimensions;
+
+		public GridIterable(int[] dimensions) {
+
+			for (int d : dimensions) {
+				if (d <= 0) {
+					throw new IllegalArgumentException("invalid dimensions: " + Arrays.toString(dimensions));
+				}
+			}
+
+			this.dimensions = dimensions;
+		}
+
+		@Override
+		public Iterator<int[]> iterator() {
+			return new Iterator<int[]>() {
+
+				int[] indices = new int[dimensions.length];
+				boolean hasNext = true;
+
+				{
+					// start indices at one pos before all zeros,
+					// so the first call to next() moves to all zeros
+					Arrays.fill(indices, 0);
+					indices[0] = -1;
+				}
+
+				@Override
+				public boolean hasNext() {
+					return hasNext;
+				}
+
+				@Override
+				public int[] next() {
+
+					if (!hasNext) {
+						throw new NoSuchElementException();
+					}
+
+					// advance to the next index
+					indices[0]++;
+					for (int d=0; d<dimensions.length; d++) {
+						if (indices[d] >= dimensions[d]) {
+							if (d + 1 == dimensions.length) {
+								throw new UnpossibleError();
+							}
+							indices[d] = 0;
+							indices[d + 1]++;
+						}
+					}
+
+					// is there another index after that?
+					hasNext = false;
+					for (int d=0; d<dimensions.length; d++) {
+						if (indices[d] < dimensions[d] - 1) {
+							hasNext = true;
+							break;
+						}
+					}
+
+					return indices;
+				}
+			};
 		}
 	}
 }

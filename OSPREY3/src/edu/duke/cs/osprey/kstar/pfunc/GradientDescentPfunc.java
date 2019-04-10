@@ -1,15 +1,52 @@
+/*
+** This file is part of OSPREY 3.0
+** 
+** OSPREY Protein Redesign Software Version 3.0
+** Copyright (C) 2001-2018 Bruce Donald Lab, Duke University
+** 
+** OSPREY is free software: you can redistribute it and/or modify
+** it under the terms of the GNU General Public License version 2
+** as published by the Free Software Foundation.
+** 
+** You should have received a copy of the GNU General Public License
+** along with OSPREY.  If not, see <http://www.gnu.org/licenses/>.
+** 
+** OSPREY relies on grants for its development, and since visibility
+** in the scientific literature is essential for our success, we
+** ask that users of OSPREY cite our papers. See the CITING_OSPREY
+** document in this distribution for more information.
+** 
+** Contact Info:
+**    Bruce Donald
+**    Duke University
+**    Department of Computer Science
+**    Levine Science Research Center (LSRC)
+**    Durham
+**    NC 27708-0129
+**    USA
+**    e-mail: www.cs.duke.edu/brd/
+** 
+** <signature of Bruce Donald>, Mar 1, 2018
+** Bruce Donald, Professor of Computer Science
+*/
+
 package edu.duke.cs.osprey.kstar.pfunc;
 
+import edu.duke.cs.osprey.astar.conf.RCs;
 import edu.duke.cs.osprey.confspace.ConfDB;
 import edu.duke.cs.osprey.confspace.ConfSearch;
+import edu.duke.cs.osprey.confspace.SimpleConfSpace;
 import edu.duke.cs.osprey.energy.ConfEnergyCalculator;
 import edu.duke.cs.osprey.externalMemory.ExternalMemory;
 import edu.duke.cs.osprey.tools.*;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.math.MathContext;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.function.Supplier;
 
 
 /**
@@ -30,22 +67,26 @@ import java.util.List;
  * not orders of magnitude slower than operation 1 (when e.g. we're reading
  * energies out of a cache).
  */
-public class GradientDescentPfunc implements PartitionFunction.WithConfTable {
+public class GradientDescentPfunc implements PartitionFunction.WithConfTable, PartitionFunction.WithExternalMemory {
 
 	private static class State {
 
 		BigDecimal numConfs;
 
 		// upper bound (score axis) vars
-		int numScoredConfs = 0;
+		long numScoredConfs = 0;
 		BigDecimal upperScoreWeightSum = BigDecimal.ZERO;
 		BigDecimal minUpperScoreWeight = MathTools.BigPositiveInfinity;
+		double minUpperScore = Double.NEGATIVE_INFINITY;
 
 		// lower bound (energy axis) vars
-		int numEnergiedConfs = 0;
+		long numEnergiedConfs = 0;
 		BigDecimal lowerScoreWeightSum = BigDecimal.ZERO;
 		BigDecimal energyWeightSum = BigDecimal.ZERO;
 		BigDecimal minLowerScoreWeight = MathTools.BigPositiveInfinity;
+		BigDecimal cumulativeZReduction = BigDecimal.ZERO;
+		ArrayList<Integer> minList = new ArrayList<Integer>();
+		BigDecimal firstScoreWeight = BigDecimal.ZERO;
 
 		// estimate of inital rates
 		// (values here aren't super imporant since they get tuned during execution,
@@ -63,7 +104,7 @@ public class GradientDescentPfunc implements PartitionFunction.WithConfTable {
 
 		double calcDelta() {
 			BigDecimal upperBound = getUpperBound();
-			if (MathTools.isZero(upperBound)) {
+			if (MathTools.isZero(upperBound) || MathTools.isInf(upperBound)) {
 				return 1.0;
 			}
 			return new BigMath(PartitionFunction.decimalPrecision)
@@ -78,7 +119,21 @@ public class GradientDescentPfunc implements PartitionFunction.WithConfTable {
 			return energyWeightSum;
 		}
 
+		public void printBoundStats() {
+            System.out.println("Num confs: " + String.format("%12e",numConfs));
+            System.out.println("Num Scored confs: " + String.format("%4d",numScoredConfs));
+            String upperScoreString = minUpperScoreWeight.toString();
+            String upperSumString = upperScoreWeightSum.toString();
+            if(!MathTools.isInf(minUpperScoreWeight))
+                upperScoreString = String.format("%12e",minUpperScoreWeight);
+            if(!MathTools.isInf(upperScoreWeightSum))
+                upperSumString = String.format("%12e",upperScoreWeightSum);
+            System.out.println("Conf bound: " + upperScoreString);
+            System.out.println("Scored weight bound:"+ upperSumString);
+		}
+
 		public BigDecimal getUpperBound() {
+
 			return new BigMath(PartitionFunction.decimalPrecision)
 
 				// unscored bound
@@ -94,6 +149,20 @@ public class GradientDescentPfunc implements PartitionFunction.WithConfTable {
 				.add(energyWeightSum)
 
 				.get();
+		}
+		public BigDecimal getUpperBoundNoE() {
+
+			return new BigMath(PartitionFunction.decimalPrecision)
+
+					// unscored bound
+					.set(numConfs)
+					.sub(numScoredConfs)
+					.mult(minUpperScoreWeight)
+
+					// with scored bound
+					.add(upperScoreWeightSum)
+
+					.get();
 		}
 
 		boolean epsilonReached(double targetEpsilon) {
@@ -124,11 +193,10 @@ public class GradientDescentPfunc implements PartitionFunction.WithConfTable {
 	}
 
 
-	public final ConfSearch confSearch;
     public final ConfEnergyCalculator ecalc;
 
 	private double targetEpsilon = Double.NaN;
-	private BigDecimal stabilityThreshold = null;
+	private BigDecimal stabilityThreshold = BigDecimal.ZERO;
 	private ConfListener confListener = null;
 	private boolean isReportingProgress = false;
 	private Stopwatch stopwatch = new Stopwatch().start();
@@ -142,14 +210,18 @@ public class GradientDescentPfunc implements PartitionFunction.WithConfTable {
 
 	private boolean hasEnergyConfs = true;
 	private boolean hasScoreConfs = true;
+	private long numEnergyConfsEnumerated = 0;
+	private long numScoreConfsEnumerated = 0;
 
 	private ConfDB.ConfTable confTable = null;
+
+	private boolean useExternalMemory = false;
+	private RCs rcs = null;
 
 	private PfuncSurface surf = null;
 	private PfuncSurface.Trace trace = null;
 
-	public GradientDescentPfunc(ConfSearch confSearch, ConfEnergyCalculator ecalc) {
-		this.confSearch = confSearch;
+	public GradientDescentPfunc(ConfEnergyCalculator ecalc) {
 		this.ecalc = ecalc;
 	}
 	
@@ -175,9 +247,14 @@ public class GradientDescentPfunc implements PartitionFunction.WithConfTable {
 	
 	@Override
 	public int getNumConfsEvaluated() {
-		return state.numEnergiedConfs;
+		// TODO: this might overflow for big pfunc calculations, upgrade the interface type?
+		return (int)state.numEnergiedConfs;
 	}
-	
+
+	public int getNumConfsScored() {
+		return (int) state.numScoredConfs;
+	}
+
 	@Override
 	public int getParallelism() {
 		return ecalc.tasks.getParallelism();
@@ -188,43 +265,60 @@ public class GradientDescentPfunc implements PartitionFunction.WithConfTable {
 		confTable = val;
 	}
 
+	@Override
+	public void setUseExternalMemory(boolean val, RCs rcs) {
+		this.useExternalMemory = val;
+		this.rcs = rcs;
+	}
+
 	public void traceTo(PfuncSurface val) {
 		surf = val;
 	}
 
 	@Override
-	public void init(double targetEpsilon) {
-		init(targetEpsilon, BigDecimal.ZERO);
+	public void init(ConfSearch confSearch, BigInteger numConfsBeforePruning, double targetEpsilon) {
+
+		init(numConfsBeforePruning, targetEpsilon);
+
+		// split the confs between the upper and lower bounds
+		ConfSearch.Splitter confsSplitter = new ConfSearch.Splitter(confSearch, useExternalMemory, rcs);
+		scoreConfs = confsSplitter.first;
+		energyConfs = confsSplitter.second;
 	}
 
 	@Override
-	public void init(double targetEpsilon, BigDecimal stabilityThreshold) {
+	public void init(ConfSearch upperBoundConfs, ConfSearch lowerBoundConfs, BigInteger numConfsBeforePruning, double targetEpsilon) {
+
+		init(numConfsBeforePruning, targetEpsilon);
+
+		this.scoreConfs = upperBoundConfs;
+		this.energyConfs = lowerBoundConfs;
+	}
+
+	private void init(BigInteger numConfsBeforePruning, double targetEpsilon) {
 
 		if (targetEpsilon <= 0.0) {
 			throw new IllegalArgumentException("target epsilon must be greater than zero");
 		}
 
 		this.targetEpsilon = targetEpsilon;
-		this.stabilityThreshold = stabilityThreshold;
 
 		// init state
 		status = Status.Estimating;
-		state = new State(confSearch.getNumConformations());
+		state = new State(numConfsBeforePruning);
 		values = Values.makeFullRange();
-		// NOTE: don't use DEE with this pfunc calculator
-		// DEE actually makes the problem harder to solve, not easier
-		// because then we have to deal with p*
-		// if we just don't prune with DEE, the usual q' calculator will handle those confs that would have been pruned
-		// not using DEE won't really slow us down either, since our A* is fast enough without it
+		// don't explicitly check the pruned confs, just lump them together with the un-enumerated confs
 		values.pstar = BigDecimal.ZERO;
 
 		hasEnergyConfs = true;
 		hasScoreConfs = true;
+		numEnergyConfsEnumerated = 0;
+		numScoreConfsEnumerated = 0;
+	}
 
-		// split the confs between the upper and lower bounds
-		ConfSearch.Splitter confsSplitter = new ConfSearch.Splitter(confSearch);
-		scoreConfs = confsSplitter.makeStream();
-		energyConfs = confsSplitter.makeStream();
+	@Override
+	public void setStabilityThreshold(BigDecimal val) {
+		this.stabilityThreshold = val;
 	}
 
 	@Override
@@ -259,7 +353,12 @@ public class GradientDescentPfunc implements PartitionFunction.WithConfTable {
 					break;
 				}
 
-				boolean scoreAheadOfEnergy = state.numEnergiedConfs < state.numScoredConfs;
+				// just in case...
+				if (Double.isNaN(state.dEnergy) || Double.isNaN(state.dScore)) {
+					throw new Error("Can't determine gradient of delta surface. This is a bug.");
+				}
+
+				boolean scoreAheadOfEnergy = numEnergyConfsEnumerated < numScoreConfsEnumerated;
 				boolean energySteeperThanScore = state.dEnergy <= state.dScore;
 
 				if (hasEnergyConfs && ((scoreAheadOfEnergy && energySteeperThanScore) || !hasScoreConfs)) {
@@ -284,6 +383,9 @@ public class GradientDescentPfunc implements PartitionFunction.WithConfTable {
 
 					// get the next energy conf, if any
 					ConfSearch.ScoredConf conf = energyConfs.nextConf();
+					if (conf != null) {
+						numEnergyConfsEnumerated++;
+					}
 					if (conf == null || conf.getScore() == Double.POSITIVE_INFINITY) {
 						hasEnergyConfs = false;
 						keepStepping = false;
@@ -320,12 +422,20 @@ public class GradientDescentPfunc implements PartitionFunction.WithConfTable {
 
 				case Score: {
 
+					// Boolean to get the first score conf and store it
+					boolean collectScore = false;
+					if (numScoreConfsEnumerated == 0){
+						collectScore = true;
+					}
 					// gather the scores
 					List<ConfSearch.ScoredConf> confs = new ArrayList<>();
 					for (int i=0; i<numScores; i++) {
 
 						// get the next score conf, if any
 						ConfSearch.ScoredConf conf = scoreConfs.nextConf();
+						if (conf != null) {
+							numScoreConfsEnumerated++;
+						}
 						if (conf == null || conf.getScore() == Double.POSITIVE_INFINITY) {
 							hasScoreConfs = false;
 							break;
@@ -334,7 +444,13 @@ public class GradientDescentPfunc implements PartitionFunction.WithConfTable {
 						confs.add(conf);
 					}
 
+					// manually score the first conf to get the first upper bound
+					if(collectScore){
+						state.firstScoreWeight = bcalc.calc(confs.get(0).getScore());
+					}
+
 					class ScoreResult {
+						public List<Double> scores = new ArrayList<>();
 						List<BigDecimal> scoreWeights = new ArrayList<>();
 						Stopwatch stopwatch = new Stopwatch();
 					}
@@ -346,6 +462,7 @@ public class GradientDescentPfunc implements PartitionFunction.WithConfTable {
 							result.stopwatch.start();
 							for (ConfSearch.ScoredConf conf : confs) {
 								result.scoreWeights.add(bcalc.calc(conf.getScore()));
+								result.scores.add(conf.getScore());
 							}
 							result.stopwatch.stop();
 							return result;
@@ -392,6 +509,9 @@ public class GradientDescentPfunc implements PartitionFunction.WithConfTable {
 		// did we hit the epsilon target?
 		if (state.epsilonReached(targetEpsilon)) {
 			status = Status.Estimated;
+			System.out.println(String.format("Total Z upper bound reduction through minimizations: %12.6e",state.cumulativeZReduction));
+			System.out.println(String.format("Average Z upper bound reduction per minimizations: %12.6e",state.cumulativeZReduction.divide(new BigDecimal(state.numEnergiedConfs),
+					new MathContext(BigDecimal.ROUND_HALF_UP))));
 		}
 
 		// did we drop below the stability threshold?
@@ -418,15 +538,24 @@ public class GradientDescentPfunc implements PartitionFunction.WithConfTable {
 			state.dEnergy = calcSlope(delta, state.prevDelta, state.dScore);
 			state.prevDelta = delta;
 
+			state.cumulativeZReduction = state.cumulativeZReduction.add(scoreWeight.subtract(energyWeight));
+			int minimizationSize = econf.getAssignments().length;
+			if(state.minList.size() < minimizationSize) {
+				state.minList.addAll(new ArrayList<Integer>(Collections.nCopies(minimizationSize - state.minList.size(), 0)));
+			}
+            state.minList.set(minimizationSize-1, state.minList.get(minimizationSize-1)+1);
+
 			// the other direction could be different now, let's be more likely to explore it
 			state.dScore *= 2.0;
 
+
 			// report progress if needed
 			if (isReportingProgress) {
-				System.out.println(String.format("conf:%4d, score:%12.6f, energy:%12.6f, bounds:[%12e,%12e], delta:%.6f, time:%10s, heapMem:%s, extMem:%s",
+				int[] x = econf.getAssignments();
+				System.out.println("["+SimpleConfSpace.formatConfRCs(econf)+"] "+String.format("conf:%4d, score:%12.6f, energy:%12.6f, bounds:[%12e,%12e], delta:%.6f, time:%10s, heapMem:%s, extMem:%s",
 					state.numEnergiedConfs,
 					econf.getScore(), econf.getEnergy(),
-					state.getLowerBound(), state.getUpperBound(),
+					state.getLowerBound().doubleValue(), state.getUpperBound().doubleValue(),
 					state.calcDelta(),
 					stopwatch.getTime(2),
 					JvmMem.getOldPool(),
@@ -449,6 +578,7 @@ public class GradientDescentPfunc implements PartitionFunction.WithConfTable {
 	private void onScores(List<BigDecimal> scoreWeights, double seconds) {
 
 		synchronized (this) { // don't race the main thread
+		    // If this is the first score,
 
 			// update the state
 			for (BigDecimal weight : scoreWeights) {
@@ -490,5 +620,23 @@ public class GradientDescentPfunc implements PartitionFunction.WithConfTable {
 		}
 
 		return slope;
+	}
+	@Override
+	public PartitionFunction.Result makeResult() {
+	    //Record original bounds
+		BigDecimal startLowerBound = BigDecimal.ZERO;
+		BigDecimal startUpperBound = state.numConfs.multiply(state.firstScoreWeight);
+	    //Record Z reductions
+		BigDecimal lowerFullMin = state.getLowerBound(); //Pfunc lower bound improvement from full minimization
+		BigDecimal lowerConfUpperBound = BigDecimal.ZERO; //Pfunc lower bound improvement from conf upper bounds, K* has none
+		BigDecimal upperFullMin = state.cumulativeZReduction; //Pfunc upper bound improvement from full minimization
+		BigDecimal upperPartialMin = BigDecimal.ZERO; //Pfunc upper bound improvement from partial minimization corrections, K* has none
+
+		// first need to calculate upper bound without energied confs
+		BigDecimal finalUpperBoundNoEnergies = state.getUpperBoundNoE();
+		BigDecimal upperConfLowerBound = startUpperBound.subtract(finalUpperBoundNoEnergies);
+
+		PartitionFunction.Result result = new PartitionFunction.Result(getStatus(), getValues(), getNumConfsEvaluated());
+		return result;
 	}
 }

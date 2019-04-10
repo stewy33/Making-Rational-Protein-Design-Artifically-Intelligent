@@ -1,3 +1,35 @@
+/*
+** This file is part of OSPREY 3.0
+** 
+** OSPREY Protein Redesign Software Version 3.0
+** Copyright (C) 2001-2018 Bruce Donald Lab, Duke University
+** 
+** OSPREY is free software: you can redistribute it and/or modify
+** it under the terms of the GNU General Public License version 2
+** as published by the Free Software Foundation.
+** 
+** You should have received a copy of the GNU General Public License
+** along with OSPREY.  If not, see <http://www.gnu.org/licenses/>.
+** 
+** OSPREY relies on grants for its development, and since visibility
+** in the scientific literature is essential for our success, we
+** ask that users of OSPREY cite our papers. See the CITING_OSPREY
+** document in this distribution for more information.
+** 
+** Contact Info:
+**    Bruce Donald
+**    Duke University
+**    Department of Computer Science
+**    Levine Science Research Center (LSRC)
+**    Durham
+**    NC 27708-0129
+**    USA
+**    e-mail: www.cs.duke.edu/brd/
+** 
+** <signature of Bruce Donald>, Mar 1, 2018
+** Bruce Donald, Professor of Computer Science
+*/
+
 package edu.duke.cs.osprey.tools;
 
 import static org.junit.Assert.*;
@@ -7,10 +39,8 @@ import org.junit.Test;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.List;
 
 import static org.hamcrest.Matchers.*;
 
@@ -437,6 +467,20 @@ public class TestMathTools {
 	@Test
 	public void bigMultiply() {
 
+		assertThat(bigMultiply(Double.NaN, Double.NaN), is(MathTools.BigNaN));
+
+		assertThat(bigMultiply(Double.POSITIVE_INFINITY, Double.NaN), is(MathTools.BigNaN));
+		assertThat(bigMultiply(Double.NEGATIVE_INFINITY, Double.NaN), is(MathTools.BigNaN));
+		assertThat(bigMultiply(-1.0, Double.NaN), is(MathTools.BigNaN));
+		assertThat(bigMultiply(0.0, Double.NaN), is(MathTools.BigNaN));
+		assertThat(bigMultiply(1.0, Double.NaN), is(MathTools.BigNaN));
+
+		assertThat(bigMultiply(Double.NaN, Double.POSITIVE_INFINITY), is(MathTools.BigNaN));
+		assertThat(bigMultiply(Double.NaN, Double.NEGATIVE_INFINITY), is(MathTools.BigNaN));
+		assertThat(bigMultiply(Double.NaN, -1.0), is(MathTools.BigNaN));
+		assertThat(bigMultiply(Double.NaN, 0.0), is(MathTools.BigNaN));
+		assertThat(bigMultiply(Double.NaN, 1.0), is(MathTools.BigNaN));
+
 		assertThat(bigMultiply(Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY), is(MathTools.BigPositiveInfinity));
 		assertThat(bigMultiply(Double.POSITIVE_INFINITY, 5.0), is(MathTools.BigPositiveInfinity));
 		assertThat(bigMultiply(Double.POSITIVE_INFINITY, 0.0).doubleValue(), is(0.0));
@@ -508,5 +552,45 @@ public class TestMathTools {
 		assertThat(bigDivide(Double.NEGATIVE_INFINITY, 0.0), is(MathTools.BigNegativeInfinity));
 		assertThat(bigDivide(Double.NEGATIVE_INFINITY, -5.0), is(MathTools.BigPositiveInfinity));
 		assertThat(bigDivide(Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY), is(MathTools.BigNaN));
+	}
+
+	public static double bigNegate(double a) {
+		return MathTools.bigNegate(MathTools.biggen(a)).doubleValue();
+	}
+
+	@Test
+	public void bigNegate() {
+		assertThat(bigNegate(-1.0), is(1.0));
+		assertThat(bigNegate(0.0), is(0.0));
+		assertThat(bigNegate(1.0), is(-1.0));
+		assertThat(bigNegate(Double.NaN), is(Double.NaN));
+		assertThat(bigNegate(Double.NEGATIVE_INFINITY), is(Double.POSITIVE_INFINITY));
+		assertThat(bigNegate(Double.POSITIVE_INFINITY), is(Double.NEGATIVE_INFINITY));
+	}
+
+	@Test
+	public void gridIterable() {
+
+		Iterator<int[]> iter = new MathTools.GridIterable(new int[] { 1, 2, 3 }).iterator();
+
+		assertThat(iter.hasNext(), is(true));
+		assertThat(iter.next(), is(new int[] { 0, 0, 0 }));
+
+		assertThat(iter.hasNext(), is(true));
+		assertThat(iter.next(), is(new int[] { 0, 1, 0 }));
+
+		assertThat(iter.hasNext(), is(true));
+		assertThat(iter.next(), is(new int[] { 0, 0, 1 }));
+
+		assertThat(iter.hasNext(), is(true));
+		assertThat(iter.next(), is(new int[] { 0, 1, 1 }));
+
+		assertThat(iter.hasNext(), is(true));
+		assertThat(iter.next(), is(new int[] { 0, 0, 2 }));
+
+		assertThat(iter.hasNext(), is(true));
+		assertThat(iter.next(), is(new int[] { 0, 1, 2 }));
+
+		assertThat(iter.hasNext(), is(false));
 	}
 }

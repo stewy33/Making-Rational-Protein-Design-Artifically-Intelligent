@@ -1,15 +1,43 @@
+/*
+** This file is part of OSPREY 3.0
+** 
+** OSPREY Protein Redesign Software Version 3.0
+** Copyright (C) 2001-2018 Bruce Donald Lab, Duke University
+** 
+** OSPREY is free software: you can redistribute it and/or modify
+** it under the terms of the GNU General Public License version 2
+** as published by the Free Software Foundation.
+** 
+** You should have received a copy of the GNU General Public License
+** along with OSPREY.  If not, see <http://www.gnu.org/licenses/>.
+** 
+** OSPREY relies on grants for its development, and since visibility
+** in the scientific literature is essential for our success, we
+** ask that users of OSPREY cite our papers. See the CITING_OSPREY
+** document in this distribution for more information.
+** 
+** Contact Info:
+**    Bruce Donald
+**    Duke University
+**    Department of Computer Science
+**    Levine Science Research Center (LSRC)
+**    Durham
+**    NC 27708-0129
+**    USA
+**    e-mail: www.cs.duke.edu/brd/
+** 
+** <signature of Bruce Donald>, Mar 1, 2018
+** Bruce Donald, Professor of Computer Science
+*/
+
 package edu.duke.cs.osprey.confspace;
 
 import java.math.BigInteger;
 import java.util.*;
 
 import edu.duke.cs.osprey.confspace.ConfSearch.ScoredConf;
-import edu.duke.cs.osprey.dof.DegreeOfFreedom;
-import edu.duke.cs.osprey.dof.FreeDihedral;
-import edu.duke.cs.osprey.dof.ProlinePucker;
-import edu.duke.cs.osprey.dof.ResidueTypeDOF;
+import edu.duke.cs.osprey.dof.*;
 import edu.duke.cs.osprey.minimization.ObjectiveFunction.DofBounds;
-import edu.duke.cs.osprey.restypes.HardCodedResidueInfo;
 import edu.duke.cs.osprey.restypes.ResidueTemplate;
 import edu.duke.cs.osprey.restypes.ResidueTemplateLibrary;
 import edu.duke.cs.osprey.structure.Molecule;
@@ -19,6 +47,7 @@ import edu.duke.cs.osprey.tools.MathTools;
 
 import java.io.Serializable;
 import java.util.stream.Collectors;
+
 
 /**
  * Maintains the design positions and residue conformations for a list of strands.
@@ -53,8 +82,14 @@ public class SimpleConfSpace implements Serializable {
 		
 		public Builder addStrands(Strand ... strands) {
 			for (Strand strand : strands) {
-				this.strands.add(strand);
-				this.strandFlex.put(strand, Arrays.asList());
+				addStrand(strand);
+			}
+			return this;
+		}
+
+		public Builder addStrands(Iterable<Strand> strands) {
+			for (Strand strand : strands) {
+				addStrand(strand);
 			}
 			return this;
 		}
@@ -68,21 +103,35 @@ public class SimpleConfSpace implements Serializable {
 			return new SimpleConfSpace(strands, strandFlex, shellDist);
 		}
 	}
-	
+
+	public static class NonMutablePositionException extends IllegalStateException {
+		public NonMutablePositionException(SimpleConfSpace.Position pos) {
+			super(String.format("Position %s was not mutable", pos));
+		}
+	}
+
 	public static class Position implements Serializable {
-		
+
+		/** index in the positions list */
 		public final int index;
+		/** index in the mutable positions list, or -1 if not there */
+		public final int mindex;
 		public final Strand strand;
 		public final String resNum;
 		public final Strand.ResidueFlex resFlex;
 		public final List<ResidueConf> resConfs;
-		
-		public Position(int index, Strand strand, Residue res) {
+		public final List<String> resTypes;
+
+		public SeqSpace.Position seqPos = null;
+
+		public Position(int index, int mindex, Strand strand, Residue res, List<String> resTypes) {
 			this.index = index;
+			this.mindex = mindex;
 			this.strand = strand;
 			this.resNum = res.getPDBResNumber();
 			this.resFlex = strand.flexibility.get(resNum);
 			this.resConfs = new ArrayList<>();
+			this.resTypes = resTypes;
 		}
 
 		@Override
@@ -101,6 +150,17 @@ public class SimpleConfSpace implements Serializable {
 				rc.getRotamerCode(),
 				conf[index]
 			);
+		}
+
+		public boolean hasMutations() {
+			return mindex >= 0;
+		}
+
+		public int mutableIndexOrThrow() {
+			if (mindex < 0) {
+				throw new NonMutablePositionException(this);
+			}
+			return mindex;
 		}
 	}
 	
@@ -163,7 +223,7 @@ public class SimpleConfSpace implements Serializable {
 			this.dofBounds.putAll(bbVoxel);
 		}
 
-		public void updateResidue(ResidueTemplateLibrary templateLib, Residue res) {
+		public void updateResidue(ResidueTemplateLibrary templateLib, Residue res, MutAlignmentCache mutAlignmentCache) {
 
 			// HACKHACK: make sure prolines have puckers
 			boolean toProline = template.name.equalsIgnoreCase("PRO");
@@ -171,7 +231,7 @@ public class SimpleConfSpace implements Serializable {
 				res.pucker = new ProlinePucker(templateLib, res);
 			}
 
-			ResidueTypeDOF.switchToTemplate(templateLib, res, template, false);
+			ResidueTypeDOF.switchToTemplate(templateLib, res, template, false, mutAlignmentCache, false);
 
 			// NOTE: currently only set for prolines, will idealize sidechain and check for problems
 			if (postTemplateModifier != null) {
@@ -184,6 +244,12 @@ public class SimpleConfSpace implements Serializable {
 			buf.append(type.letter);
 			if (rotamerIndex != null) {
 				buf.append(rotamerIndex);
+			}
+			for(String dofName:dofBounds.keySet()) {
+				if(dofName.contains("PERT")) {
+					double[] bounds = dofBounds.get(dofName);
+					buf.append("P"+dofBounds.get(dofName)[0]);
+				}
 			}
 			return buf.toString();
 		}
@@ -246,6 +312,18 @@ public class SimpleConfSpace implements Serializable {
 				}
 			}
 		}
+
+		public static DofTypes combine(Iterable<DofTypes> types) {
+			Iterator<DofTypes> iter = types.iterator();
+			if (!iter.hasNext()) {
+				return null;
+			}
+			DofTypes out = iter.next();
+			if (iter.hasNext()) {
+				out = DofTypes.combine(out, iter.next());
+			}
+			return out;
+		}
 	}
 	
 	
@@ -261,6 +339,15 @@ public class SimpleConfSpace implements Serializable {
 	/** The design positions */
 	public final List<Position> positions;
 
+	/** The subset of design positions with allowed mutations */
+	public final List<Position> mutablePositions;
+
+	/** The subset of design positions with no mutations */
+	public final List<Position> immutablePositions;
+
+	/** The sequence space for this conformation space */
+	public final SeqSpace seqSpace;
+
 	/** The design positions, indexed by residue number */
 	private final Map<String,Position> positionsByResNum;
 	
@@ -268,6 +355,9 @@ public class SimpleConfSpace implements Serializable {
 	public final Set<String> shellResNumbers;
 
 	private final int[] numResConfsByPos;
+	private final Molecule molTemplate;
+
+	private final MutAlignmentCache mutAlignmentCache = new MutAlignmentCache();
 
 	public SimpleConfSpace(List<Strand> strands, Map<Strand,List<StrandFlex>> strandFlex, double shellDist) {
 
@@ -289,6 +379,8 @@ public class SimpleConfSpace implements Serializable {
 
 		// build the design positions
 		positions = new ArrayList<>();
+		mutablePositions = new ArrayList<>();
+		immutablePositions = new ArrayList<>();
 		for (Strand strand : strands) {
 
 			for (String resNum : strand.flexibility.getFlexibleResidueNumbers()) {
@@ -296,8 +388,16 @@ public class SimpleConfSpace implements Serializable {
 				Strand.ResidueFlex resFlex = strand.flexibility.get(resNum);
 
 				// make the pos
-				Position pos = new Position(positions.size(), strand, res);
+				int index = positions.size();
+				int mindex = resFlex.isMutable() ? mutablePositions.size() : -1;
+				List<String> resTypes = new ArrayList<>(resFlex.getAllResTypes());
+				Position pos = new Position(index, mindex, strand, res, resTypes);
 				positions.add(pos);
+				if (mindex >= 0) {
+					mutablePositions.add(pos);
+				} else {
+					immutablePositions.add(pos);
+				}
 
 				// make residue confs from library rotamers
 				for (String resType : resFlex.resTypes) {
@@ -355,6 +455,23 @@ public class SimpleConfSpace implements Serializable {
 		numResConfsByPos = new int[positions.size()];
 		for (int i=0; i<positions.size(); i++) {
 			numResConfsByPos[i] = positions.get(i).resConfs.size();
+		}
+
+		// make the sequence space
+		seqSpace = new SeqSpace(this);
+		for (SeqSpace.Position seqPos : seqSpace.positions) {
+			positionsByResNum.get(seqPos.resNum).seqPos = seqPos;
+		}
+
+		// make the molecule template, to speed up makeMolecule()
+		molTemplate = new Molecule();
+		for (Strand strand : strands) {
+			for (Residue res : strand.mol.residues) {
+				res = new Residue(res);
+				res.molec = molTemplate;
+				res.indexInMolecule = molTemplate.residues.size();
+				molTemplate.residues.add(res);
+			}
 		}
 	}
 
@@ -447,10 +564,36 @@ public class SimpleConfSpace implements Serializable {
 	/** Gets the total number of residue conf pairs for all positions */
 	public int getNumResConfPairs() {
 		int count = 0;
-		for (int pos1=0; pos1<positions.size(); pos1++) {
+		for (int pos1=1; pos1<positions.size(); pos1++) {
 			for (int pos2=0; pos2<pos1; pos2++) {
-				for (int rc1=0; rc1<numResConfsByPos[pos2]; rc1++) {
-					count += numResConfsByPos[pos1];
+				count += numResConfsByPos[pos1]*numResConfsByPos[pos2];
+			}
+		}
+		return count;
+	}
+
+	/** Gets the total number of residue conf triples for all positions */
+	public int getNumResConfTriples() {
+		int count = 0;
+		for (int pos1=2; pos1<positions.size(); pos1++) {
+			for (int pos2=1; pos2<pos1; pos2++) {
+				for (int pos3=0; pos3<pos2; pos3++) {
+					count += numResConfsByPos[pos1]*numResConfsByPos[pos2]*numResConfsByPos[pos3];
+				}
+			}
+		}
+		return count;
+	}
+
+	/** Gets the total number of residue conf quads for all positions */
+	public int getNumResConfQuads() {
+		int count = 0;
+		for (int pos1=2; pos1<positions.size(); pos1++) {
+			for (int pos2=1; pos2<pos1; pos2++) {
+				for (int pos3=0; pos3<pos2; pos3++) {
+					for (int pos4=0; pos4<pos3; pos4++) {
+						count += numResConfsByPos[pos1]*numResConfsByPos[pos2]*numResConfsByPos[pos3]*numResConfsByPos[pos4];
+					}
 				}
 			}
 		}
@@ -461,11 +604,47 @@ public class SimpleConfSpace implements Serializable {
 	public ParametricMolecule makeMolecule(ScoredConf conf) {
 		return makeMolecule(conf.getAssignments());
 	}
-        //With DEEPer and CATS it is much less messy if we can generate the ParametricMolecule and its bounds together
-	
+
 	/** @see #makeMolecule(RCTuple) */
 	public ParametricMolecule makeMolecule(int[] conf) {
 		return makeMolecule(new RCTuple(conf));
+	}
+
+	/**
+	 * create a new {@link Molecule} in the specified conformation
+	 * but without any continuous flexibility
+	 */
+	public Molecule makeDiscreteMolecule(RCTuple conf) {
+
+		Molecule mol = new Molecule();
+		for (Residue res : molTemplate.residues) {
+
+			// is this a conformation residue?
+			Position pos = getPositionOrNull(res.getPDBResNumber());
+			if (pos != null) {
+
+				// is this residue part of the given conformation?
+				int index = conf.pos.indexOf(pos.index);
+				if (index >= 0) {
+
+					// yup, get the RC
+					ResidueConf rc = pos.resConfs.get(conf.RCs.get(index));
+
+					// build the residue from the RC
+					Residue newRes = res.copyToMol(mol, false);
+					rc.updateResidue(pos.strand.templateLib, newRes, mutAlignmentCache);
+
+					continue;
+				}
+			}
+
+			// otherise, just copy from the template molecule
+			res.copyToMol(mol, true);
+		}
+
+		mol.markInterResBonds();
+
+		return mol;
 	}
 	
 	/**
@@ -477,30 +656,15 @@ public class SimpleConfSpace implements Serializable {
 	 * from accumulating across separate analyses. 
 	 */
 	public ParametricMolecule makeMolecule(RCTuple conf) {
-		
-		// make the molecule from the strands (ignore alternates)
-		Molecule mol = new Molecule();
-		for (Strand strand : strands) {
-			for (Residue res : strand.mol.residues) {
-				res = new Residue(res);
-				res.molec = mol;
-				res.indexInMolecule = mol.residues.size();
-				mol.residues.add(res);
-			}
-		}
-		mol.markInterResBonds();
-		
-		// mutate to the conf templates, and figure out what conformational DOFs are specified by the conf
-		HashSet<String> confDOFNames = new HashSet<>();//names of DOFs specified by the conf
+
+		// copy the molecule from the template and make mutations as needed
+		Molecule mol = makeDiscreteMolecule(conf);
+
+		// figure out what conformational DOFs are specified by the conf
+		HashSet<String> confDOFNames = new HashSet<>();
 		for (int i=0; i<conf.size(); i++) {
-			
 			Position pos = positions.get(conf.pos.get(i));
 			ResidueConf resConf = pos.resConfs.get(conf.RCs.get(i));
-			Residue res = mol.getResByPDBResNumber(pos.resNum);
-			
-			resConf.updateResidue(pos.strand.templateLib, res);
-			// since we always switch to a new template before starting each minimization,
-			// no need to standardize mutatable res at the beginning of the design
 			confDOFNames.addAll(resConf.dofBounds.keySet());
 		}
 
@@ -520,7 +684,7 @@ public class SimpleConfSpace implements Serializable {
 				}
 			}
 		}
-		
+
 		// then, residue conf DOFs
 		for (int i=0; i<conf.size(); i++) {
 			Position pos = positions.get(conf.pos.get(i));
@@ -616,6 +780,30 @@ public class SimpleConfSpace implements Serializable {
 		}
 		
 		return dofTypes;
+	}
+
+	public DofInfo makeDofInfo(RCTuple conf) {
+
+		// NOTE: this method should describe dofs in the same order that makeMolecule() does
+
+		DofInfo info = new DofInfo(conf);
+
+		// backbone flexibility
+		for (Strand strand : getConfStrands(conf)) {
+			for (StrandFlex flex : strandFlex.get(strand)) {
+				info.addStrand(strand, flex.countDofs(strand));
+			}
+		}
+
+		// residue flexibility
+		for (int i=0; i<conf.size(); i++) {
+			Position pos = positions.get(conf.pos.get(i));
+			ResidueConf rc = pos.resConfs.get(conf.RCs.get(i));
+			Strand.ResidueFlex resFlex = pos.strand.flexibility.get(pos.resNum);
+			info.addPos(pos, rc, resFlex.voxelShape.countDihedralDOFs(rc.template));
+		}
+
+		return info;
 	}
         
         public int getNumPos(){
@@ -746,6 +934,19 @@ public class SimpleConfSpace implements Serializable {
 		);
 	}
 
+	public String formatConfRotamersWithResidueNumbers(int[] conf) {
+		return String.join(",",positions.stream()
+				.map((pos) -> {
+					String rcString = pos.resNum+":*";
+				    if(conf[pos.index] > -1) {
+				    	ResidueConf rc = pos.resConfs.get(conf[pos.index]);
+						rcString = pos.resNum+":"+rc.template.name+"-"+rc.getRotamerCode();
+					}
+					return rcString;
+				})
+				.collect(Collectors.toList()));
+	}
+
 	public String formatResidueNumbers() {
 		return String.join(" ", positions.stream()
 			.map((pos) -> String.format("%-5s", pos.resNum))
@@ -754,19 +955,23 @@ public class SimpleConfSpace implements Serializable {
 	}
 
 	public Sequence makeUnassignedSequence() {
-		return Sequence.makeUnassigned(this);
+		return seqSpace.makeUnassignedSequence();
 	}
 
 	public Sequence makeWildTypeSequence() {
-		return Sequence.makeWildType(this);
+		return seqSpace.makeWildTypeSequence();
 	}
 
 	public Sequence makeSequenceFromAssignments(int[] assignments) {
-		return Sequence.makeFromAssignments(this, assignments);
+		Sequence seq = seqSpace.makeUnassignedSequence();
+		for (Position pos : positions) {
+			seq.set(pos.resNum, pos.resConfs.get(assignments[pos.index]).template.name);
+		}
+		return seq;
 	}
 
 	public Sequence makeSequenceFromConf(ConfSearch.ScoredConf conf) {
-		return Sequence.makeFromConf(this, conf);
+		return makeSequenceFromAssignments(conf.getAssignments());
 	}
 
 	public BigInteger calcNumSequences() {

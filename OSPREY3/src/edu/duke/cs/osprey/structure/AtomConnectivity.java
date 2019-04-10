@@ -1,3 +1,35 @@
+/*
+** This file is part of OSPREY 3.0
+** 
+** OSPREY Protein Redesign Software Version 3.0
+** Copyright (C) 2001-2018 Bruce Donald Lab, Duke University
+** 
+** OSPREY is free software: you can redistribute it and/or modify
+** it under the terms of the GNU General Public License version 2
+** as published by the Free Software Foundation.
+** 
+** You should have received a copy of the GNU General Public License
+** along with OSPREY.  If not, see <http://www.gnu.org/licenses/>.
+** 
+** OSPREY relies on grants for its development, and since visibility
+** in the scientific literature is essential for our success, we
+** ask that users of OSPREY cite our papers. See the CITING_OSPREY
+** document in this distribution for more information.
+** 
+** Contact Info:
+**    Bruce Donald
+**    Duke University
+**    Department of Computer Science
+**    Levine Science Research Center (LSRC)
+**    Durham
+**    NC 27708-0129
+**    USA
+**    e-mail: www.cs.duke.edu/brd/
+** 
+** <signature of Bruce Donald>, Mar 1, 2018
+** Bruce Donald, Professor of Computer Science
+*/
+
 package edu.duke.cs.osprey.structure;
 
 import java.util.ArrayList;
@@ -51,6 +83,9 @@ public class AtomConnectivity {
 		private Set<ResidueTemplate> templates = new HashSet<>();
 		private Parallelism parallelism = Parallelism.makeCpu(1);
 
+		/** should 15 bonded atoms, where at least one is H, be treated as non-bonded? */
+		private boolean treat15HasNonBonded = true;
+
 		public Builder addTemplates(Collection<ResidueTemplate> val) {
 			templates.addAll(val);
 			return this;
@@ -58,6 +93,7 @@ public class AtomConnectivity {
 
 		public Builder addTemplates(ResidueTemplateLibrary val) {
 			addTemplates(val.templates);
+			addTemplates(val.wildTypeTemplates.values());
 			return this;
 		}
 
@@ -75,9 +111,14 @@ public class AtomConnectivity {
 			parallelism = val;
 			return this;
 		}
+
+		public Builder set15HasNonBonded(boolean val) {
+			treat15HasNonBonded = val;
+			return this;
+		}
 		
 		public AtomConnectivity build() {
-			return new AtomConnectivity(new ArrayList<>(templates), parallelism);
+			return new AtomConnectivity(new ArrayList<>(templates), parallelism, treat15HasNonBonded);
 		}
 	}
 	
@@ -189,12 +230,17 @@ public class AtomConnectivity {
 			return this.templ1 == other.templ1 && this.templ2 == other.templ2;
 		}
 	}
+
+
+	public final boolean treat15HasNonBonded;
 	
 	private Map<Key1,AtomPairs> atomPairs1;
 	private Map<Key2,AtomPairs> atomPairs2;
 	private Map<KeySeparate,AtomPairs> atomPairsSeparate;
 	
-	private AtomConnectivity(List<ResidueTemplate> templates, Parallelism parallelism) {
+	private AtomConnectivity(List<ResidueTemplate> templates, Parallelism parallelism, boolean treat15HasNonBonded) {
+
+		this.treat15HasNonBonded = treat15HasNonBonded;
 		
 		// make sure we have residue templates
 		if (templates == null || templates.isEmpty()) {
@@ -288,10 +334,10 @@ public class AtomConnectivity {
 		}
 	
 		// are they bonded together?
-		if (isDipeptide(res1, res2)) {
+		if (isInterResBonded(res1, res2)) {
 			// yup, in forward order
 			return atomPairs2.get(new Key2(res1.template, res2.template, true));
-		} else if (isDipeptide(res2, res1)) {
+		} else if (isInterResBonded(res2, res1)) {
 			// yup, in reverse order
 			return atomPairs2.get(new Key2(res2.template, res1.template, false));
 		} else {
@@ -309,7 +355,7 @@ public class AtomConnectivity {
 		
 		Residue res1 = makeResidue(templ1);
 		Residue res2 = makeResidue(templ2);
-		if (!makePeptideBond(res1, res2)) {
+		if (!makeInterResBond(res1, res2)) {
 			return null;
 		}
 		
@@ -329,32 +375,14 @@ public class AtomConnectivity {
 		return res;
 	}
 	
-	private boolean makePeptideBond(Residue res1, Residue res2) {
-		
-		Atom C = res1.getAtomByName("C");
-		Atom N = res2.getAtomByName("N");
-		
-		// no way to make a peptide bond? then we don't care about this sequence of templates
-		// TODO: what about non-protein chains?
-		if (C == null || N == null) {
-			return false;
-		}
-		
-		C.addBond(N);
-		
-		return true;
+	private boolean makeInterResBond(Residue res1, Residue res2) {
+		return res1.template.interResBonding.makeInterResBondForward(res1, res2)
+			|| res2.template.interResBonding.makeInterResBondForward(res1, res2);
 	}
 	
-	private boolean isDipeptide(Residue res1, Residue res2) {
-		
-		Atom C = res1.getAtomByName("C");
-		Atom N = res2.getAtomByName("N");
-		
-		if (C == null || N == null) {
-			return false;
-		}
-		
-		return C.bonds.contains(N);
+	private boolean isInterResBonded(Residue res1, Residue res2) {
+		return res1.template.interResBonding.isInterResBondedForward(res1, res2)
+			|| res2.template.interResBonding.isInterResBondedForward(res1, res2);
 	}
 	
 	private AtomPairs makeAtomPairs(Residue res1, Residue res2) {
@@ -368,7 +396,12 @@ public class AtomConnectivity {
 		for (int i=0; i<res1.atoms.size(); i++) {
 			Atom atom1 = res1.atoms.get(i);
 			
-			AtomNeighbors neighbors = new AtomNeighbors(atom1);
+			AtomNeighbors neighbors;
+			if (treat15HasNonBonded) {
+				neighbors = new AtomNeighbors(atom1);
+			} else {
+				neighbors = new ProbeAtomNeighbors(atom1);
+			}
 			
 			// for self residue pairs, skip self atom pairs and atom pairs in the other direction
 			int n = i;

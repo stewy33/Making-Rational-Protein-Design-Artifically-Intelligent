@@ -8,8 +8,8 @@ ffparams = osprey.ForcefieldParams()
 # read a PDB file for molecular info
 mol = osprey.readPdb('2RL0.min.reduce.pdb')
 
-# make sure all strands share the same template library (including wild-type rotamers)
-templateLib = osprey.TemplateLibrary(ffparams.forcefld, moleculesForWildTypeRotamers=[mol])
+# make sure all strands share the same template library
+templateLib = osprey.TemplateLibrary(ffparams.forcefld)
 
 # define the protein strand
 protein = osprey.Strand(mol, templateLib=templateLib, residues=['G648', 'G654'])
@@ -47,27 +47,35 @@ def confEcalcFactory(confSpace, ecalc):
 	eref = osprey.ReferenceEnergies(confSpace, ecalc)
 	return osprey.ConfEnergyCalculator(confSpace, ecalc, referenceEnergies=eref)
 
-# how should confs be ordered and searched?
-def astarFactory(emat, rcs):
-	return osprey.AStarTraditional(emat, rcs, showProgress=False)
-	# or
-	# return osprey.AStarMPLP(emat, rcs, numIterations=5)
-
-# run K*
+# configure BBK*
 bbkstar = osprey.BBKStar(
 	proteinConfSpace,
 	ligandConfSpace,
 	complexConfSpace,
-	rigidEcalc,
-	minimizingEcalc,
-	confEcalcFactory,
-	astarFactory,
 	numBestSequences=2,
 	epsilon=0.99, # you proabably want something more precise in your real designs
-	energyMatrixCachePattern='emat.*.dat',
 	writeSequencesToConsole=True,
 	writeSequencesToFile='bbkstar.results.tsv'
 )
+
+# configure BBK* inputs for each conf space
+for info in bbkstar.confSpaceInfos():
+
+	# how should we define energies of conformations?
+	eref = osprey.ReferenceEnergies(info.confSpace, minimizingEcalc)
+	info.confEcalcMinimized = osprey.ConfEnergyCalculator(info.confSpace, minimizingEcalc, referenceEnergies=eref)
+
+	# compute the energy matrix
+	emat = osprey.EnergyMatrix(info.confEcalcMinimized, cacheFile='emat.%s.dat' % info.id)
+
+	# BBK* needs rigid energies too
+	rigidConfEcalc = osprey.ConfEnergyCalculatorCopy(info.confEcalcMinimized, rigidEcalc)
+	rigidEmat = osprey.EnergyMatrix(rigidConfEcalc, cacheFile='emat.%s.rigid.dat' % info.id)
+
+	# how should partition functions be computed?
+	info.pfuncFactory = osprey.PartitionFunctionFactory(info.confSpace, info.confEcalcMinimized, info.id)
+
+# run BBK*
 scoredSequences = bbkstar.run()
 
 # use results

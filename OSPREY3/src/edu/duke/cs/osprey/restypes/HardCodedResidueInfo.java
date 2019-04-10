@@ -1,7 +1,35 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
+** This file is part of OSPREY 3.0
+** 
+** OSPREY Protein Redesign Software Version 3.0
+** Copyright (C) 2001-2018 Bruce Donald Lab, Duke University
+** 
+** OSPREY is free software: you can redistribute it and/or modify
+** it under the terms of the GNU General Public License version 2
+** as published by the Free Software Foundation.
+** 
+** You should have received a copy of the GNU General Public License
+** along with OSPREY.  If not, see <http://www.gnu.org/licenses/>.
+** 
+** OSPREY relies on grants for its development, and since visibility
+** in the scientific literature is essential for our success, we
+** ask that users of OSPREY cite our papers. See the CITING_OSPREY
+** document in this distribution for more information.
+** 
+** Contact Info:
+**    Bruce Donald
+**    Duke University
+**    Department of Computer Science
+**    Levine Science Research Center (LSRC)
+**    Durham
+**    NC 27708-0129
+**    USA
+**    e-mail: www.cs.duke.edu/brd/
+** 
+** <signature of Bruce Donald>, Mar 1, 2018
+** Bruce Donald, Professor of Computer Science
+*/
+
 package edu.duke.cs.osprey.restypes;
 
 import java.util.ArrayList;
@@ -224,23 +252,31 @@ public class HardCodedResidueInfo {
                 return new InterResBondingTemplate.CysteineBondingTemplate();
             else
                 return new InterResBondingTemplate.PeptideBondingTemplate();
-        }
-        else
+        } else if (HardCodedResidueInfo.hasNucleicAcidBB(res)) {
+        	return new InterResBondingTemplate.NucleotideBondingTemplate();
+		} else {
             return new InterResBondingTemplate.NoBondingTemplate();
+		}
     }
     
     
     public static boolean hasAminoAcidBB(Residue res){
         //does res have the three main amino-acid backbone atoms (N,CA, and C)?
         //This would allow it to peptide-bond
-        if( res.getAtomIndexByName("N")>=0 && res.getAtomIndexByName("CA")>=0 
-                && res.getAtomIndexByName("C")>=0){
-            return true;//found them all
-        }
-        return false;//didn't find them all
+		return res.getAtomIndexByName("N") >= 0
+			&& res.getAtomIndexByName("CA") >= 0
+			&& res.getAtomIndexByName("C") >= 0;
     }
-    
-    
+
+	public static boolean hasNucleicAcidBB(Residue res){
+    	return res.getAtomIndexByName("P") >= 0
+			&& res.getAtomIndexByName("O5'") >= 0
+			&& res.getAtomIndexByName("C5'") >= 0
+			&& res.getAtomIndexByName("C4'") >= 0
+			&& res.getAtomIndexByName("C3'") >= 0
+			&& res.getAtomIndexByName("O3'") >= 0;
+	}
+
     public static String getTemplateName(Residue res){
         //some residues may have template names different than what's in the full name for the residue
         //we identify those here
@@ -269,7 +305,8 @@ public class HardCodedResidueInfo {
             else if( ( HDCount == 2 ) && ( HECount == 2 ) )
                 return "HIP";
             else{
-                throw new RuntimeException("ERROR: Invalid protonation state for " + res.fullName );
+                throw new RuntimeException("ERROR: Invalid protonation state for " + res.fullName +
+                ".  The residue may be partially disordered--please check it and consider deleting or rebuilding it if so.  ");
             }
         }
         else if( resName.equalsIgnoreCase("CYS") ){

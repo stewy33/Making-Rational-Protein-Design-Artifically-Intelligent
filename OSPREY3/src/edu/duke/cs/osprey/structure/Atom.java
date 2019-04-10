@@ -1,7 +1,35 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
+** This file is part of OSPREY 3.0
+** 
+** OSPREY Protein Redesign Software Version 3.0
+** Copyright (C) 2001-2018 Bruce Donald Lab, Duke University
+** 
+** OSPREY is free software: you can redistribute it and/or modify
+** it under the terms of the GNU General Public License version 2
+** as published by the Free Software Foundation.
+** 
+** You should have received a copy of the GNU General Public License
+** along with OSPREY.  If not, see <http://www.gnu.org/licenses/>.
+** 
+** OSPREY relies on grants for its development, and since visibility
+** in the scientific literature is essential for our success, we
+** ask that users of OSPREY cite our papers. See the CITING_OSPREY
+** document in this distribution for more information.
+** 
+** Contact Info:
+**    Bruce Donald
+**    Duke University
+**    Department of Computer Science
+**    Levine Science Research Center (LSRC)
+**    Durham
+**    NC 27708-0129
+**    USA
+**    e-mail: www.cs.duke.edu/brd/
+** 
+** <signature of Bruce Donald>, Mar 1, 2018
+** Bruce Donald, Professor of Computer Science
+*/
+
 package edu.duke.cs.osprey.structure;
 
 import edu.duke.cs.osprey.tools.PeriodicTable;
@@ -73,7 +101,41 @@ public class Atom implements Serializable {
         
         return ans;
     }
-    
+
+	/**
+	 * An optimized copy method
+	 * (profiling shows the usual constructors are a bit slow)
+	 * but doesn't copy the bonds
+	 */
+    public Atom copyToRes(Residue res) {
+		Atom copy = new Atom();
+
+		// copy simple properties
+		copy.name = this.name;
+		copy.elementType = this.elementType;
+		copy.BFactor = this.BFactor;
+		copy.modelAtomNumber = this.modelAtomNumber;
+		copy.forceFieldType = this.forceFieldType;
+		copy.type = this.type;
+		copy.charge = this.charge;
+		copy.elementNumber = this.elementNumber;
+		copy.radius = this.radius;
+		copy.mass = this.mass;
+
+		// init the bonds
+		copy.bonds = new ArrayList<>();
+
+		// put the copy atom in the res
+		copy.res = res;
+		copy.indexInRes = res.atoms.size();
+		res.atoms.add(copy);
+
+		return copy;
+	}
+
+	// private constructor just for the optimized copyToRes() method,
+	// so we can bypass the other slower constructors without breaking existing code
+	private Atom() {}
     
     public void addBond(Atom atom2){
         //add a bond between this and atom2
@@ -84,12 +146,20 @@ public class Atom implements Serializable {
     
     public double[] getCoords(){
         //x,y, and z coordinates, pulled from the residue
-        double x = res.coords[3*indexInRes];
-        double y = res.coords[3*indexInRes+1];
-        double z = res.coords[3*indexInRes+2];
+		int i = 3*indexInRes;
+        double x = res.coords[i++];
+        double y = res.coords[i++];
+        double z = res.coords[i];
         
         return new double[] {x,y,z};
     }
+
+    public void setCoords(double x, double y, double z) {
+    	int i = 3*indexInRes;
+    	res.coords[i++] = x;
+		res.coords[i++] = y;
+		res.coords[i] = z;
+	}
     
     public boolean isHydrogen() {
         return elementType.equalsIgnoreCase("H");
@@ -99,4 +169,20 @@ public class Atom implements Serializable {
         return elementType.equalsIgnoreCase("C");
     }
 
+	public boolean isOxygen() {
+		return elementType.equalsIgnoreCase("O");
+	}
+
+	@Override
+	public String toString() {
+    	if (res != null) {
+			int i = 3*indexInRes;
+			return String.format("%s %s (%.3f, %.3f, %.3f)",
+				res.fullName, name,
+				res.coords[i], res.coords[i + 1], res.coords[i + 2]
+			);
+		} else {
+    		return name;
+		}
+	}
 }

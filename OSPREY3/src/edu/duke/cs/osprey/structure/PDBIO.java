@@ -1,15 +1,45 @@
+/*
+** This file is part of OSPREY 3.0
+** 
+** OSPREY Protein Redesign Software Version 3.0
+** Copyright (C) 2001-2018 Bruce Donald Lab, Duke University
+** 
+** OSPREY is free software: you can redistribute it and/or modify
+** it under the terms of the GNU General Public License version 2
+** as published by the Free Software Foundation.
+** 
+** You should have received a copy of the GNU General Public License
+** along with OSPREY.  If not, see <http://www.gnu.org/licenses/>.
+** 
+** OSPREY relies on grants for its development, and since visibility
+** in the scientific literature is essential for our success, we
+** ask that users of OSPREY cite our papers. See the CITING_OSPREY
+** document in this distribution for more information.
+** 
+** Contact Info:
+**    Bruce Donald
+**    Duke University
+**    Department of Computer Science
+**    Levine Science Research Center (LSRC)
+**    Durham
+**    NC 27708-0129
+**    USA
+**    e-mail: www.cs.duke.edu/brd/
+** 
+** <signature of Bruce Donald>, Mar 1, 2018
+** Bruce Donald, Professor of Computer Science
+*/
+
 package edu.duke.cs.osprey.structure;
 
-import java.io.File;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.TreeSet;
 
-import edu.duke.cs.osprey.confspace.RCTuple;
 import edu.duke.cs.osprey.control.Main;
 import edu.duke.cs.osprey.energy.EnergyCalculator;
-import edu.duke.cs.osprey.kstar.SequenceAnalyzer;
 import org.apache.commons.lang3.text.WordUtils;
 
 import edu.duke.cs.osprey.structure.Residue.SecondaryStructure;
@@ -86,7 +116,7 @@ public class PDBIO {
 			for (int i=0; i<atoms.size(); i++) {
 				char atomAlt = alts.get(i);
 				if (atomAlt == ' ' || atomAlt == alt) {
-					resAtoms.add(atoms.get(i));
+					resAtoms.add(atoms.get(i).copy());
 					resCoords.add(coords.get(i));
 				}
 			}
@@ -117,14 +147,30 @@ public class PDBIO {
 		return mols;
 	}
 	
-	private static List<Molecule> readMols(String pdbText) {
+	public static List<Molecule> readMols(String pdbText) {
+		return readMols(FileTools.parseLines(pdbText));
+	}
+
+	/**
+	 * faster reading method for bulk reads
+	 * doesn't do secondary structure annotation
+	 */
+	public static List<Molecule> readMols(File file) {
+		try (FileReader reader = new FileReader(file)) {
+			return readMols(FileTools.parseLinesFast(reader));
+		} catch (IOException ex) {
+			throw new RuntimeException(ex);
+		}
+	}
+
+	private static List<Molecule> readMols(Iterable<String> pdbIter) {
 		
 		List<Molecule> mols = new ArrayList<>();
 		Molecule mol = new Molecule();
 		mols.add(mol);
 		ResInfo resInfo = new ResInfo();
 		
-		for (String line : FileTools.parseLines(pdbText)) {
+		for (String line : pdbIter) {
 			line = padLine(line);
 			
 			if (isLine(line, "MODEL")) {
