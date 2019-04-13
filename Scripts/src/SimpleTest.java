@@ -16,8 +16,7 @@ public class SimpleTest {
 
     public static void main(String args[]) {
         // Define a strand
-        System.out.println(PDBIO.read("./OSPREY3/examples/1CC8/1CC8.ss.pdb").residues);
-        Strand strand = new Strand.Builder(PDBIO.read("OSPREY3/examples/1CC8/1CC8.ss.pdb")).build();
+        Strand strand = new Strand.Builder(PDBIO.readFile("OSPREY3/examples/1CC8/1CC8.ss.pdb")).build();
         strand.flexibility.get("A2").setLibraryRotamers("ALA", "GLY");
         strand.flexibility.get("A3").setLibraryRotamers(Strand.WildType, "VAL");
         strand.flexibility.get("A4").setLibraryRotamers(Strand.WildType);
@@ -36,6 +35,5 @@ public class SimpleTest {
 
         // Find best sequence and rotamers
         ConfSearch.EnergiedConf gmec = new SimpleGMECFinder.Builder(aStarTree, confECalc).build().find();
-        System.out.println(gmec);
     }
 }
