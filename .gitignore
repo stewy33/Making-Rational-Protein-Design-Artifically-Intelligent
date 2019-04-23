@@ -1,28 +1,13 @@
-
-# temp folders
+# Build stuff
+cmake-build-debug
 build
-lib
-**/*.egg-info
-**/*.pyc
+src/ToulbarVersion.hpp
+src/MyCPackConf.cmake
 
-# netbeans things
-nbproject
-build.xml
-nbbuild.xml
-
-# eclipse things
-bin
-.classpath
-.project
-.settings
-
-# IDEA things
+# Editor stuff
+.vscode
+.pc
 .idea
-*.iml
-out
-
-# Gradle things
-.gradle
 
 # Misc
 .DS_Store

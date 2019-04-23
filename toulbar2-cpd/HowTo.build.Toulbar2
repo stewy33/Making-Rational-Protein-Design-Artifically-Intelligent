@@ -1,0 +1,184 @@
+# required package
+# depending of the flag activated in cmake
+# boost graph and libxml  may be required (warning! XML flag incompatible with STATIC compilation flag)
+# by default boost-graph and boost-iostreams are required , under debian or ubuntu you can easely install the libraries with
+# the following commands :
+
+sudo  apt-get install libboost-graph-dev
+sudo  apt-get install libboost-iostreams-dev
+
+#obviosely if you tag the ilog flag 
+#ilog librares will be required.
+
+# library : gmp is required
+
+sudo apt-get install libgmp3-dev
+
+# library : zlib and lzma are required
+
+sudo apt-get install zlib1g-dev
+sudo apt-get install liblzma-dev
+
+# library : jemalloc may be required
+
+sudo apt-get install libjemalloc-dev
+
+# if you want to cross compile toulbar2 please upload static GMP library and header file for MinGW
+# at the following url : http://cs.nyu.edu/exact/core/gmp/
+# location of static gmp lib for windows must be update in cmake-script/FindGmp.cmake
+# by default locate is ./lib/win32/
+
+#cmake package are also required
+sudo apt-get install cmake cmake-data cmake-curses-gui
+
+#for cross compilation under ubuntu
+#the following package are required
+
+sudo apt-get install mingw32 mingw32-binutils mingw32-runtime nsis
+
+# for default compilation under linux please use:
+
+mkdir build ; cd build ; cmake .. ; make package
+
+# build directory is now you working directory 
+# by default only toulbar2 package for linux distro will be generate
+
+
+# cross compilation ==> compile toulbar2 under for win32 plateform
+
+cmake .. -DWIN32=ON ; make package
+
+
+# in advanced mode you can tune your compilation option using:
+
+ccmake ..
+# if ccmake not available on your system please use:
+cmake -i ..
+
+#Different compilation options are available:  RELEASE DEBUG MINSIZEREL RELWITHDEBINFO
+# each option can be tuned using the [t] pad under ccmake
+# or cmake -i mode
+
+# Release ==> -O3 -NDEBUG option remove assert 
+# Debug ==> -g option
+# each option can be tune using the [t] pad under ccmake
+# ore cmake -i mode
+
+cmake .. -DCMAKE_BUILD_TYPE=RELEASE ==> compilation in release mode
+cmake .. -DCMAKE_BUILD_TYPE=DEBUG  ===> compilation in debug mode
+
+#notice: iloglue compilation not compliant with -O3 option implied by release mode
+# ==> iloglue does not support release mode
+
+# Howto generate toulbar2 source documentation
+# first install the following package required 
+
+sudo apt-get install texlive-latex-recommended  texlive-fonts-recommended doxygen 
+
+#  for generating documentation use the following command:
+
+cmake -DBUILD_API_DOC=ON -DBUILD_API_DOC_LATEX=ON .. ; make doc
+
+# for generating reference manual and extracting its wcsp file format description
+# warning! change to COMPACT_LATEX          = NO for a separate wcsp description 
+
+cd doc/dev/latex/
+pdflatex refman.tex
+pdftk refman.pdf cat 11-16 output wcspformat.pdf
+
+
+#howto run toublar2 validation bench
+# the wall set of foo.wcsp locate in the validation directory will be run
+# each instances need also a foo.ub containing upperbound 
+# so for add a new test you just have to copy it int the validation directory
+# rebuild makefile using cmake . or make rebuild_cache and launch the test
+# ctest scan the ./validation directory recursively 
+# and create a bench listing , bench option are manager first by the default
+# -DDefault_test_option="my option..."  Default_test_option is a string. it  will be used if in the bench directory
+#, there is no  local definition of default parameter .
+# local parameter can be declare in a cmake file named test-opt.cmake
+#. in other words, you can personalise toulbar testing
+# in adding you own test and precise the wanted parameter : command line argument in file, timeout, regular expression
+# the test-opt.cmake  are associeted to the current directory only.
+
+make test ; # alternative command:test
+
+
+# howto genearte mendelsoft
+
+make clean ; cmake .. -DMENDELSOFT_ONLY=ON ; make package
+
+
+#howto change define option in code preprocessing.
+# please edit  the ./cmake-Script/define_option.cmake
+# you can add or remove your own -Dfoo option in the set_properties associeted to the  target of interest 
+
+# howto edit package description:
+edit the following variable in the CMakeLists.txt located in the project root 
+SET (Toulbar_PACKAGE_DESCRIPTION "...." )
+SET(Toular_PACKAGE_SUMMARY "...." )
+
+package option are include into the ./cmake-Script/package.cmake
+
+if you want to add a new c++ file in the toulbar2 target 
+please edit ./cmake-Script/source_files.cmake
+
+#howto generate doxygene doc file
+# required packages are : doxygen latex2pdf graphviz
+
+make doc ; # => html and pdf are create in doc/dev directory
+
+#howto generate a codeblock project file  : =>
+
+ cmake .. -G"CodeBlocks - Unix Makefiles"
+
+# the command produces the Toulbar2_framework.cbp file, which can be open in Code::Blocks IDE.
+# obviously cmake allows to generate project file for various IDE environement (Kdevelop , eclipse ..)
+# for further information please read cmake man page (cmake --help)
+
+#Howto use eclipse for developping toulbar2  : (follow the url)
+
+http://www.cmake.org/Wiki/CMake:Eclipse_UNIX_Tutorial
+
+#howto compile toulbar2 under Mac OSXX ?
+
+ mkdir build
+ cd build
+ cmake -G Xcode ..
+# open the xcode project file generated in the build directory
+# build and manage the source code in the xcode with no problem
+
+
+###########################
+# How to launch toulbar2 cover test
+##########################
+cd build;
+#==> launch all test
+ctest  ;
+# launch only phase 1 test
+ctest -R "Phase1"
+#launch Phase2 on 2 processor in parallel
+ctest -j=2 -R "Phase2" ;
+
+
+# ./validation and ./cover are directories dedicated to toulbar2 testing
+
+# validation Dir correspond to the phase1 : for each directory include in validation
+# you can test a given command line on the instances (*.wcsp file) include in the directory
+# the command line can be  overloaded in specifying the option in  the test-opt.cmake locate in the directory
+# this file include 3 variables : command_line_option , test_timeout, test_regexp
+# test timeout ( used for all wcsp found in the director)
+#regexp to define successfull end. =>  set (test_regexp  "Optimum: ${UB}")   for each instance
+# will compare the toulbar2 output to the upper bound include in a ub file corresponding to the instances.
+
+
+#cover Dir include cover test : i.e you can test several command line option for the same instances
+# liste of command line option are specified in  the file cover/cover-option.cmake
+# the file include :  the set of instances  ==> list instances is a double entry list"
+# the current file must include:
+# one set named "instances"  (including the list of the array of option "each element include into
+# $instance set  allow to declare an set of option corresponding to the given element"
+# example if the set instances contain only : foo.wcsp  you must define a second set named foo.wcsp where you will"
+# define the list of option ( each element of the second list "foo.wcsp will be used for create a unit test"
+# on foo.wcsp with option declare on each tuple of the foo.wcsp (set)
+
