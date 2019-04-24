@@ -1,5 +1,3 @@
-WSUM_lin 4 3 1 1000
-3 3 3 3
-
-4 0 1 2 3 -1 wsum lin 200
-< 3
+version https://git-lfs.github.com/spec/v1
+oid sha256:e7f2fe3fdcb1b407a5c2468c3ebaa602abbe77ee0e9751769711769b3471f7b8
+size 59

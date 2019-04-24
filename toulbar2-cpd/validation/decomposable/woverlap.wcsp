@@ -1,4 +1,3 @@
-WOVERLAP_hard 4 3 1 1000
-3 3 3 3
-4 0 1 2 3 -1 woverlap hard 1000
-< 1
+version https://git-lfs.github.com/spec/v1
+oid sha256:4e828a1d1c6f8658de72ab833b4016abf647115c2e13923f22868b893a1d9a88
+size 69

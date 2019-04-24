@@ -1,15 +1,3 @@
-WREGULAR 4 2 1 1000
-2 2 2 2
-
-4 0 1 2 3 -1 wregular
-2
-1
-0 0
-2
-0 0
-1 1
-4
-0 0 0 0
-0 1 1 0
-1 0 0 0
-1 1 1 100
+version https://git-lfs.github.com/spec/v1
+oid sha256:3afd0195afbb2f1826ead0dda5e023990054607cd618716af25f30b09c6674d8
+size 105

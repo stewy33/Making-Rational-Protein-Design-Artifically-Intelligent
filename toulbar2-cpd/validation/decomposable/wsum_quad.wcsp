@@ -1,22 +1,3 @@
-WSUM_hard 4 3 5 1000
-3 3 3 3
-
-4 0 1 2 3 -1 wsum quad 100
-<= 4
-
-1 0 0 2
-0 100
-1 10
-
-1 1 0 2
-0 100
-1 10
-
-1 2 0 2
-0 100
-1 10
-
-1 3 0 2
-0 100
-1 10
-
+version https://git-lfs.github.com/spec/v1
+oid sha256:5c27d7180378679d305c1341f4c118530e187e4904a14b34b9793fdd38dac176
+size 143
