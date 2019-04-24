@@ -1,8 +1,24 @@
-# Build stuff
+# CMake
 cmake-build-debug
+CMakeLists.txt.user
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Testing
+Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+_deps
+
+# Toulbar
 build
 src/ToulbarVersion.hpp
 src/MyCPackConf.cmake
+CPackConfig.cmake
+CPackSourceConfig.cmake
+toulbar2.cbp
 
 # Editor stuff
 .vscode
