@@ -1573,6 +1573,44 @@ void Solver::recursiveSolveLDS(int discrepancy)
         newSolution();
 }
 
+void Solver::recursiveSolveLDSForDataGeneration(int discrepancy)
+{
+    int varIndex = -1;
+
+    // If we're at a node we want to add to data set, we handle branching differently. Otherwise, use toulbar2's heuristics as normal.
+    if (true) {
+        for (BTList<Value>::iterator iter = unassignedVars->begin(); iter != unassignedVars->end(); ++iter) {
+        }
+    }
+    if (ToulBar2::bep)
+        varIndex = getMostUrgent();
+    else if (ToulBar2::weightedDegree && ToulBar2::lastConflict)
+        varIndex = ((ToulBar2::restart > 0) ? getVarMinDomainDivMaxWeightedDegreeLastConflictRandomized() : getVarMinDomainDivMaxWeightedDegreeLastConflict());
+    else if (ToulBar2::lastConflict)
+        varIndex = ((ToulBar2::restart > 0) ? getVarMinDomainDivMaxDegreeLastConflictRandomized() : getVarMinDomainDivMaxDegreeLastConflict());
+    else if (ToulBar2::weightedDegree)
+        varIndex = ((ToulBar2::restart > 0) ? getVarMinDomainDivMaxWeightedDegreeRandomized() : getVarMinDomainDivMaxWeightedDegree());
+    else
+        varIndex = ((ToulBar2::restart > 0) ? getVarMinDomainDivMaxDegreeRandomized() : getVarMinDomainDivMaxDegree());
+    if (varIndex >= 0) {
+        if (ToulBar2::bep)
+            scheduleOrPostpone(varIndex);
+        else if (wcsp->enumerated(varIndex)) {
+            if (ToulBar2::binaryBranching) {
+                assert(wcsp->canbe(varIndex, wcsp->getSupport(varIndex)));
+                // Reuse last solution found if available
+                Value bestval = wcsp->getBestValue(varIndex);
+                binaryChoicePointLDS(varIndex, (wcsp->canbe(varIndex, bestval)) ? bestval : wcsp->getSupport(varIndex), discrepancy);
+            } else {
+                narySortedChoicePointLDS(varIndex, discrepancy);
+            }
+        } else {
+            binaryChoicePointLDS(varIndex, wcsp->getInf(varIndex), discrepancy);
+        }
+    } else
+        newSolution();
+}
+
 pair<Cost, Cost> Solver::hybridSolve(Cluster* cluster, Cost clb, Cost cub)
 {
     if (ToulBar2::verbose >= 1 && cluster)
