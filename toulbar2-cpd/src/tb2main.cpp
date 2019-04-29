@@ -951,8 +951,12 @@ void help_msg(char* toulbar2filename)
 #endif
 }
 
+//#include <torch/torch.h>
 int _tmain(int argc, TCHAR* argv[])
 {
+  //torch::Tensor tensor = torch::rand({2, 3});
+  //std::cout << tensor << std::endl;
+
 #ifdef OPENMPI
     MPIEnv env0;
     MPI_Init(NULL, NULL);

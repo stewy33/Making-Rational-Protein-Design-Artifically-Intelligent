@@ -1620,6 +1620,14 @@ void Solver::recursiveSolveLDS(int discrepancy)
     }
 }
 
+std::vector<double> Solver::getFeatureVector()
+{
+    std::vector<double> featureVector = {
+
+    };
+    return featureVector;
+}
+
 pair<Cost, Cost> Solver::hybridSolve(Cluster* cluster, Cost clb, Cost cub)
 {
     if (ToulBar2::verbose >= 1 && cluster)
