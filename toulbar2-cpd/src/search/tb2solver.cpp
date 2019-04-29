@@ -14,10 +14,17 @@
 #include "tb2clusters.hpp"
 #include "vns/tb2vnsutils.hpp"
 #include "vns/tb2dgvns.hpp"
+#include <boost/accumulators/accumulators.hpp>
+#include <boost/accumulators/statistics/stats.hpp>
+#include <boost/accumulators/statistics/mean.hpp>
+#include <boost/accumulators/statistics/median.hpp>
+#include <boost/accumulators/statistics/variance.hpp>
+#include <boost/bind.hpp>
+#include <boost/ref.hpp>
 #ifdef OPENMPI
 #include "cpd/tb2negjobs.hpp"
 #include "vns/tb2cpdgvns.hpp"
-#include "vns/tb2rpdgvns.hpp"
+#include "vns/tb2rpdgvns.hpp"
 #endif
 #include <unistd.h>
 
@@ -2642,6 +2649,59 @@ void Solver::restore(CPStore& cp, OpenNode nd)
     }
     wcsp->propagate();
     //if (wcsp->getLb() != nd.getCost(((wcsp->getTreeDec())?wcsp->getTreeDec()->getCurrentCluster()->getCurrentDelta():MIN_COST))) cout << "***** node cost: " << nd.getCost(((wcsp->getTreeDec())?wcsp->getTreeDec()->getCurrentCluster()->getCurrentDelta():MIN_COST)) << " but lb: " << wcsp->getLb() << endl;
+}
+
+double mean(std::vector< double > samples)
+{
+    boost::accumulators::accumulator_set< double, boost::accumulators::features< boost::accumulators::tag::mean > > acc;
+    std::for_each( samples.begin(), samples.end(), boost::bind<void>( boost::ref(acc), _1 ) );
+    return boost::accumulators::extract_result< boost::accumulators::tag::mean >( acc );
+}
+
+double median(std::vector< double > samples)
+{
+    boost::accumulators::accumulator_set< double, boost::accumulators::features< boost::accumulators::tag::median > > acc;
+    std::for_each( samples.begin(), samples.end(), boost::bind<void>( boost::ref(acc), _1 ) );
+    return boost::accumulators::extract_result< boost::accumulators::tag::median >( acc );
+}
+
+double stdev(std::vector< double > samples)
+{
+    boost::accumulators::accumulator_set< double, boost::accumulators::features< boost::accumulators::tag::variance > > acc;
+    std::for_each( samples.begin(), samples.end(), boost::bind<void>( boost::ref(acc), _1 ) );
+    return std::sqrt( boost::accumulators::extract_result< boost::accumulators::tag::mean >( acc ) );
+}
+
+double first_quartile(std::vector< double > samples)
+{
+    std::vector< double > first_half;
+    int half = samples.size() / 2;
+    for (int i = 0; i < half; i++) {
+        first_half.push_back( samples[i] );
+    }
+    return median( first_half );
+}
+
+double third_quartile(std::vector< double > samples)
+{
+    std::vector< double > second_half;
+    int half = samples.size() / 2;
+    for (int i = half; i < samples.size(); i++) {
+        second_half.push_back( samples[i] );
+    }
+    return median( second_half );
+}
+
+double min(std::vector< double > samples)
+{
+    std::sort( samples.begin(), samples.end() );
+    return *samples.begin();
+}
+
+double max(std::vector< double > samples)
+{
+    std::sort( samples.begin(), samples.end() );
+    return *samples.end();
 }
 
 /* Local Variables: */
