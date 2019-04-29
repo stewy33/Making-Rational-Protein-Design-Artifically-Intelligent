@@ -1671,7 +1671,8 @@ std::vector<double> Solver::getFeatureVector(int varIndex, Value val)
     double maxDomainSize = domainSizes.back();
     double firstQuartileDomainSize = domainSizes[domainSizes.size() / 4];
     double thirdQuartileDomainSize = domainSizes[domainSizes.size() * 3 / 4];
-
+    double involvedCostFunctions = wcsp->getDegree(varIndex);
+    
     std::vector<double> featureVector = {
         domainSize,
         domainProduct,
