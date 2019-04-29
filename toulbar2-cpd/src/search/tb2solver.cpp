@@ -1549,16 +1549,18 @@ void Solver::recursiveSolve(Cost lb)
     }
 }
 
-int nodeToGenerateDataFor = 1;
+int nodeToGenerateDataFor = 0;
 int currentNode = 0;
 bool inNodeSubTree = false;
 int nodeSubtreeSize = 0;
 void Solver::recursiveSolveLDS(int discrepancy)
 {
     // If we're at a node we want to add to data set, we handle branching differently. Otherwise, use toulbar2's heuristics as normal.
-    if (false) { //currentNode++ == nodeToGenerateDataFor) {
+    if (false) { // currentNode++ == nodeToGenerateDataFor) {
         // We consider size of subtree for every possible assignment of every possible variable
         cout << "uaVars size: " << unassignedVars->getSize() << endl;
+        ofstream dataFile;
+        dataFile.open("data.txt", ios::app);
         for (BTList<Value>::iterator iter = unassignedVars->begin(); iter != unassignedVars->end(); ++iter) {
             int varIndex = *iter;
             if (wcsp->enumerated(varIndex)) {
@@ -1573,8 +1575,15 @@ void Solver::recursiveSolveLDS(int discrepancy)
                             inNodeSubTree = true;
                             nodeSubtreeSize = 0;
                             Store::store();
+
                             std::vector<double> featureVector = getFeatureVector(varIndex, domain[i]);
                             binaryChoicePointLDS(varIndex, domain[i], discrepancy);
+
+                            for (double feature : featureVector) {
+                                dataFile << feature << " ";
+                            }
+                            dataFile << nodeSubtreeSize << endl;
+
                             Store::restore();
                             inNodeSubTree = false;
                         }
@@ -1586,7 +1595,26 @@ void Solver::recursiveSolveLDS(int discrepancy)
                 binaryChoicePointLDS(varIndex, wcsp->getInf(varIndex), discrepancy);
             }
         }
+        dataFile.close();
     } else {
+
+        /* Plug in NN here
+        float minEstimatedNodes = std::numeric_limits<float>::max();
+        int bestVar = -1;
+        int bestVal = -1;
+        for (BTList<Value>::iterator it = unassignedVars->begin(); it != unassignedVars->end(); ++it) {
+            int varIndex = *it;
+            for (int i = 0; i < wcsp->getDomainSize(varIndex); i++) {
+                float estimatedNodes = runNN();
+                if (estimatedNodes < minEstimatedNodes) {
+                    minEstimatedNodes = estimatedNodes;
+                    bestVar = varIndex;
+                    bestVal = wcsp->toValue(varIndex, i);
+                }
+            }
+        }
+        binaryChoicePointLDS(bestVar, bestVal, discrepancy);*/
+
         int varIndex = -1;
         if (ToulBar2::bep)
             varIndex = getMostUrgent();
