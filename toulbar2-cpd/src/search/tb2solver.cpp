@@ -1694,7 +1694,8 @@ std::vector<double> Solver::getFeatureVector(int varIndex, Value val)
     double firstQuartileUnaryCost = unaryCosts[unaryCosts.size() / 4];
     double thirdQuartileUnaryCost = unaryCosts[unaryCosts.size() * 3 / 4];
     double currUnaryCost = wcsp->getUnaryCost(varIndex, val);
-    
+    double involvedCostFunctions = wcsp->getDegree(varIndex);
+
     std::vector<double> featureVector = {
         domainSize,
         domainProduct,
@@ -1705,10 +1706,13 @@ std::vector<double> Solver::getFeatureVector(int varIndex, Value val)
         maxDomainSize,
         firstQuartileDomainSize,
         thirdQuartileDomainSize,
+
         estDegree,
         weightedDegree,
+
         lowerBound,
         upperBound,
+
         meanUnaryCost,
         medianUnaryCost,
         stdDevUnaryCost,
@@ -1716,7 +1720,9 @@ std::vector<double> Solver::getFeatureVector(int varIndex, Value val)
         maxUnaryCost,
         firstQuartileUnaryCost,
         thirdQuartileUnaryCost,
-        currUnaryCost
+        currUnaryCost,
+
+        involvedCostFunctions  
     };
     return featureVector;
 }
