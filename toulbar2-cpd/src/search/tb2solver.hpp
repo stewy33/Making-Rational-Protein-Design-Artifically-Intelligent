@@ -299,7 +299,7 @@ protected:
     TLogProb binaryChoicePointBTDZ(Cluster* cluster, int varIndex, Value value);
     TLogProb BTD_sharpZ(Cluster* cluster);
 
-    std::vector<double> getFeatureVector();
+    std::vector<double> getFeatureVector(int varIndex, Value val);
 
 public:
     Solver(Cost initUpperBound);

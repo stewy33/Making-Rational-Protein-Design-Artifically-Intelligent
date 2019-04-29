@@ -1573,6 +1573,7 @@ void Solver::recursiveSolveLDS(int discrepancy)
                             inNodeSubTree = true;
                             nodeSubtreeSize = 0;
                             Store::store();
+                            std::vector<double> featureVector = getFeatureVector(varIndex, domain[i]);
                             binaryChoicePointLDS(varIndex, domain[i], discrepancy);
                             Store::restore();
                             inNodeSubTree = false;
@@ -1627,9 +1628,34 @@ void Solver::recursiveSolveLDS(int discrepancy)
     }
 }
 
-std::vector<double> Solver::getFeatureVector()
+std::vector<double> Solver::getFeatureVector(int varIndex, Value val)
 {
+    double domainSize = wcsp->getDomainSize(varIndex);
+    double domainProduct = 1.0;
+    std::vector< int > domainSizes;
+    for (BTList<Value>::iterator iter = unassignedVars->begin(); iter != unassignedVars->end(); ++iter) {
+        int i = *iter;
+        domainProduct *= wcsp->getDomainSize(i);
+        domainSizes.push_back(wcsp->getDomainSize(i));
+    }
+    double meanDomainSize = mean(domainSizes);
+    double medianDomainSize = median(domainSizes);
+    double stdevDomainSize = stdev(domainSizes);
+    double minDomainSize = minSample(domainSizes);
+    double maxDomainSize = maxSample(domainSizes);
+    double firstQuartileDomainSize = firstQuartile(domainSizes);
+    double thirdQuartileDomainSize = thirdQuartile(domainSizes);
+    double numUnsolvedVariables =
     std::vector<double> featureVector = {
+        domainSize,
+        domainProduct,
+        meanDomainSize,
+        medianDomainSize,
+        stdevDomainSize,
+        minDomainSize,
+        maxDomainSize,
+        firstQuartileDomainSize,
+        thirdQuartileDomainSize,
 
     };
     return featureVector;
@@ -2668,6 +2694,59 @@ void Solver::restore(CPStore& cp, OpenNode nd)
     //if (wcsp->getLb() != nd.getCost(((wcsp->getTreeDec())?wcsp->getTreeDec()->getCurrentCluster()->getCurrentDelta():MIN_COST))) cout << "***** node cost: " << nd.getCost(((wcsp->getTreeDec())?wcsp->getTreeDec()->getCurrentCluster()->getCurrentDelta():MIN_COST)) << " but lb: " << wcsp->getLb() << endl;
 }
 
+double mean(std::vector< int > samples)
+{
+    boost::accumulators::accumulator_set< double, boost::accumulators::features< boost::accumulators::tag::mean > > acc;
+    std::for_each( samples.begin(), samples.end(), boost::bind<void>( boost::ref(acc), _1 ) );
+    return boost::accumulators::extract_result< boost::accumulators::tag::mean >( acc );
+}
+
+double median(std::vector< int > samples)
+{
+    boost::accumulators::accumulator_set< double, boost::accumulators::features< boost::accumulators::tag::median > > acc;
+    std::for_each( samples.begin(), samples.end(), boost::bind<void>( boost::ref(acc), _1 ) );
+    return boost::accumulators::extract_result< boost::accumulators::tag::median >( acc );
+}
+
+double stdev(std::vector< int > samples)
+{
+    boost::accumulators::accumulator_set< double, boost::accumulators::features< boost::accumulators::tag::variance > > acc;
+    std::for_each( samples.begin(), samples.end(), boost::bind<void>( boost::ref(acc), _1 ) );
+    return std::sqrt( boost::accumulators::extract_result< boost::accumulators::tag::mean >( acc ) );
+}
+
+double firstQuartile(std::vector< int > samples)
+{
+    std::vector< double > first_half;
+    int half = samples.size() / 2;
+    for (int i = 0; i < half; i++) {
+        first_half.push_back( samples[i] );
+    }
+    return median( first_half );
+}
+
+double thirdQuartile(std::vector< int > samples)
+{
+    std::vector< double > second_half;
+    int half = samples.size() / 2;
+    for (int i = half; i < samples.size(); i++) {
+        second_half.push_back( samples[i] );
+    }
+    return median( second_half );
+}
+
+double minSample(std::vector< int > samples)
+{
+    std::sort( samples.begin(), samples.end() );
+    return *samples.begin();
+}
+
+double maxSample(std::vector< int > samples)
+{
+    std::sort( samples.begin(), samples.end() );
+    return *samples.end();
+}
+
 double mean(std::vector< double > samples)
 {
     boost::accumulators::accumulator_set< double, boost::accumulators::features< boost::accumulators::tag::mean > > acc;
@@ -2689,7 +2768,7 @@ double stdev(std::vector< double > samples)
     return std::sqrt( boost::accumulators::extract_result< boost::accumulators::tag::mean >( acc ) );
 }
 
-double first_quartile(std::vector< double > samples)
+double firstQuartile(std::vector< double > samples)
 {
     std::vector< double > first_half;
     int half = samples.size() / 2;
@@ -2699,7 +2778,7 @@ double first_quartile(std::vector< double > samples)
     return median( first_half );
 }
 
-double third_quartile(std::vector< double > samples)
+double thirdQuartile(std::vector< double > samples)
 {
     std::vector< double > second_half;
     int half = samples.size() / 2;
@@ -2709,13 +2788,13 @@ double third_quartile(std::vector< double > samples)
     return median( second_half );
 }
 
-double min(std::vector< double > samples)
+double minSample(std::vector< double > samples)
 {
     std::sort( samples.begin(), samples.end() );
     return *samples.begin();
 }
 
-double max(std::vector< double > samples)
+double maxSample(std::vector< double > samples)
 {
     std::sort( samples.begin(), samples.end() );
     return *samples.end();
