@@ -269,7 +269,6 @@ protected:
     void narySortedChoicePointLDS(int xIndex, int discrepancy);
     void recursiveSolve(Cost lb = MIN_COST);
     void recursiveSolveLDS(int discrepancy);
-    void recursiveSolveLDSForDataGeneration(int discrepancy);
     Value postponeRule(int varIndex);
     void scheduleOrPostpone(int varIndex);
 
