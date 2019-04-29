@@ -1672,6 +1672,29 @@ std::vector<double> Solver::getFeatureVector(int varIndex, Value val)
     double firstQuartileDomainSize = domainSizes[domainSizes.size() / 4];
     double thirdQuartileDomainSize = domainSizes[domainSizes.size() * 3 / 4];
 
+    double estDegree = (double) wcsp->getDegree(varIndex); //can also get actual degree
+    double weightedDegree = (double) wcsp->getWeightedDegree(varIndex);
+    double lowerBound = (double) wcsp->getDLb();
+    double upperBound = (double) wcsp->getDUb();
+    //some more stuff is available, like getBestValue which may help DNN learn new variable ordering heuristic
+
+    // Find unary cost statistics of certain variable
+    std::vector< double > unaryCosts;
+    ValueCost* valuesAndCosts = new ValueCost[wcsp->getDomainSize(varIndex)];
+    wcsp->getEnumDomainAndCost(varIndex, valuesAndCosts);
+    for (int i = 0; i < wcsp->getDomainSize(varIndex); i++) {
+        unaryCosts.push_back((double) valuesAndCosts[i].cost);
+    }
+    std::sort(unaryCosts.begin(), unaryCosts.end());
+    double meanUnaryCost = mean(unaryCosts);
+    double medianUnaryCost = median(unaryCosts);
+    double stdDevUnaryCost = stdDev(unaryCosts);
+    double minUnaryCost = (double) unaryCosts.front();
+    double maxUnaryCost = (double) wcsp->getMaxUnaryCost(varIndex);
+    double firstQuartileUnaryCost = unaryCosts[unaryCosts.size() / 4];
+    double thirdQuartileUnaryCost = unaryCosts[unaryCosts.size() * 3 / 4];
+    double currUnaryCost = wcsp->getUnaryCost(varIndex, val);
+    
     std::vector<double> featureVector = {
         domainSize,
         domainProduct,
@@ -1682,6 +1705,18 @@ std::vector<double> Solver::getFeatureVector(int varIndex, Value val)
         maxDomainSize,
         firstQuartileDomainSize,
         thirdQuartileDomainSize,
+        estDegree,
+        weightedDegree,
+        lowerBound,
+        upperBound,
+        meanUnaryCost,
+        medianUnaryCost,
+        stdDevUnaryCost,
+        minUnaryCost,
+        maxUnaryCost,
+        firstQuartileUnaryCost,
+        thirdQuartileUnaryCost,
+        currUnaryCost
     };
     return featureVector;
 }
