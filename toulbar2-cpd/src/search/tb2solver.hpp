@@ -269,7 +269,6 @@ protected:
     void narySortedChoicePointLDS(int xIndex, int discrepancy);
     void recursiveSolve(Cost lb = MIN_COST);
     void recursiveSolveLDS(int discrepancy);
-    void recursiveSolveLDSForDataGeneration(int discrepancy);
     Value postponeRule(int varIndex);
     void scheduleOrPostpone(int varIndex);
 
@@ -299,6 +298,8 @@ protected:
 
     TLogProb binaryChoicePointBTDZ(Cluster* cluster, int varIndex, Value value);
     TLogProb BTD_sharpZ(Cluster* cluster);
+
+    std::vector<double> getFeatureVector();
 
 public:
     Solver(Cost initUpperBound);

@@ -828,6 +828,7 @@ void Solver::remove(int varIndex, Value value, bool reverse)
             cout << ",C" << wcsp->getTreeDec()->getCurrentCluster()->getId();
         cout << "] Try " << wcsp->getName(varIndex) << " != " << value << endl;
     }
+
     wcsp->remove(varIndex, value);
     wcsp->propagate();
     if (ToulBar2::hbfs)
@@ -1548,74 +1549,90 @@ void Solver::recursiveSolve(Cost lb)
     }
 }
 
+int nodeToGenerateDataFor = 1;
+int currentNode = 0;
+bool inNodeSubTree = false;
+int nodeSubtreeSize = 0;
 void Solver::recursiveSolveLDS(int discrepancy)
 {
-    int varIndex = -1;
-    if (ToulBar2::bep)
-        varIndex = getMostUrgent();
-    else if (ToulBar2::weightedDegree && ToulBar2::lastConflict)
-        varIndex = ((ToulBar2::restart > 0) ? getVarMinDomainDivMaxWeightedDegreeLastConflictRandomized() : getVarMinDomainDivMaxWeightedDegreeLastConflict());
-    else if (ToulBar2::lastConflict)
-        varIndex = ((ToulBar2::restart > 0) ? getVarMinDomainDivMaxDegreeLastConflictRandomized() : getVarMinDomainDivMaxDegreeLastConflict());
-    else if (ToulBar2::weightedDegree)
-        varIndex = ((ToulBar2::restart > 0) ? getVarMinDomainDivMaxWeightedDegreeRandomized() : getVarMinDomainDivMaxWeightedDegree());
-    else
-        varIndex = ((ToulBar2::restart > 0) ? getVarMinDomainDivMaxDegreeRandomized() : getVarMinDomainDivMaxDegree());
-    if (varIndex >= 0) {
-        if (ToulBar2::bep)
-            scheduleOrPostpone(varIndex);
-        else if (wcsp->enumerated(varIndex)) {
-            if (ToulBar2::binaryBranching) {
-                assert(wcsp->canbe(varIndex, wcsp->getSupport(varIndex)));
-                // Reuse last solution found if available
-                Value bestval = wcsp->getBestValue(varIndex);
-                binaryChoicePointLDS(varIndex, (wcsp->canbe(varIndex, bestval)) ? bestval : wcsp->getSupport(varIndex), discrepancy);
-            } else {
-                narySortedChoicePointLDS(varIndex, discrepancy);
-            }
-        } else {
-            binaryChoicePointLDS(varIndex, wcsp->getInf(varIndex), discrepancy);
-        }
-    } else
-        newSolution();
-}
-
-void Solver::recursiveSolveLDSForDataGeneration(int discrepancy)
-{
-    int varIndex = -1;
-
     // If we're at a node we want to add to data set, we handle branching differently. Otherwise, use toulbar2's heuristics as normal.
-    if (true) {
+    if (false) { //currentNode++ == nodeToGenerateDataFor) {
+        // We consider size of subtree for every possible assignment of every possible variable
+        cout << "uaVars size: " << unassignedVars->getSize() << endl;
         for (BTList<Value>::iterator iter = unassignedVars->begin(); iter != unassignedVars->end(); ++iter) {
+            int varIndex = *iter;
+            if (wcsp->enumerated(varIndex)) {
+                if (ToulBar2::binaryBranching) {
+
+                    Value* domain = new Value[wcsp->getDomainSize(varIndex)];
+                    wcsp->getEnumDomain(varIndex, domain);
+                    int i = 0;
+                    for (unsigned int i = 0; i < wcsp->getDomainSize(varIndex); i++) {
+                        if (wcsp->canbe(varIndex, domain[i])) {
+                            cout << "hi" << endl;
+                            inNodeSubTree = true;
+                            nodeSubtreeSize = 0;
+                            Store::store();
+                            binaryChoicePointLDS(varIndex, domain[i], discrepancy);
+                            Store::restore();
+                            inNodeSubTree = false;
+                        }
+                    }
+                } else {
+                    narySortedChoicePointLDS(varIndex, discrepancy);
+                }
+            } else {
+                binaryChoicePointLDS(varIndex, wcsp->getInf(varIndex), discrepancy);
+            }
+        }
+    } else {
+        int varIndex = -1;
+        if (ToulBar2::bep)
+            varIndex = getMostUrgent();
+        else if (ToulBar2::weightedDegree && ToulBar2::lastConflict)
+            varIndex = ((ToulBar2::restart > 0) ? getVarMinDomainDivMaxWeightedDegreeLastConflictRandomized()
+                                                : getVarMinDomainDivMaxWeightedDegreeLastConflict());
+        else if (ToulBar2::lastConflict)
+            varIndex = ((ToulBar2::restart > 0) ? getVarMinDomainDivMaxDegreeLastConflictRandomized()
+                                                : getVarMinDomainDivMaxDegreeLastConflict());
+        else if (ToulBar2::weightedDegree)
+            varIndex = ((ToulBar2::restart > 0) ? getVarMinDomainDivMaxWeightedDegreeRandomized()
+                                                : getVarMinDomainDivMaxWeightedDegree());
+        else
+            varIndex = ((ToulBar2::restart > 0) ? getVarMinDomainDivMaxDegreeRandomized()
+                                                : getVarMinDomainDivMaxDegree());
+        if (varIndex >= 0) {
+            if (ToulBar2::bep)
+                scheduleOrPostpone(varIndex);
+            else if (wcsp->enumerated(varIndex)) {
+                if (ToulBar2::binaryBranching) {
+                    assert(wcsp->canbe(varIndex, wcsp->getSupport(varIndex)));
+                    // Reuse last solution found if available
+                    Value bestval = wcsp->getBestValue(varIndex);
+                    binaryChoicePointLDS(varIndex,
+                                         (wcsp->canbe(varIndex, bestval)) ? bestval : wcsp->getSupport(varIndex),
+                                         discrepancy);
+                } else {
+                    narySortedChoicePointLDS(varIndex, discrepancy);
+                }
+            } else {
+                binaryChoicePointLDS(varIndex, wcsp->getInf(varIndex), discrepancy);
+            }
+        } else
+            newSolution();
+
+        if (inNodeSubTree) {
+            nodeSubtreeSize++;
         }
     }
-    if (ToulBar2::bep)
-        varIndex = getMostUrgent();
-    else if (ToulBar2::weightedDegree && ToulBar2::lastConflict)
-        varIndex = ((ToulBar2::restart > 0) ? getVarMinDomainDivMaxWeightedDegreeLastConflictRandomized() : getVarMinDomainDivMaxWeightedDegreeLastConflict());
-    else if (ToulBar2::lastConflict)
-        varIndex = ((ToulBar2::restart > 0) ? getVarMinDomainDivMaxDegreeLastConflictRandomized() : getVarMinDomainDivMaxDegreeLastConflict());
-    else if (ToulBar2::weightedDegree)
-        varIndex = ((ToulBar2::restart > 0) ? getVarMinDomainDivMaxWeightedDegreeRandomized() : getVarMinDomainDivMaxWeightedDegree());
-    else
-        varIndex = ((ToulBar2::restart > 0) ? getVarMinDomainDivMaxDegreeRandomized() : getVarMinDomainDivMaxDegree());
-    if (varIndex >= 0) {
-        if (ToulBar2::bep)
-            scheduleOrPostpone(varIndex);
-        else if (wcsp->enumerated(varIndex)) {
-            if (ToulBar2::binaryBranching) {
-                assert(wcsp->canbe(varIndex, wcsp->getSupport(varIndex)));
-                // Reuse last solution found if available
-                Value bestval = wcsp->getBestValue(varIndex);
-                binaryChoicePointLDS(varIndex, (wcsp->canbe(varIndex, bestval)) ? bestval : wcsp->getSupport(varIndex), discrepancy);
-            } else {
-                narySortedChoicePointLDS(varIndex, discrepancy);
-            }
-        } else {
-            binaryChoicePointLDS(varIndex, wcsp->getInf(varIndex), discrepancy);
-        }
-    } else
-        newSolution();
+}
+
+std::vector<double> Solver::getFeatureVector()
+{
+    std::vector<double> featureVector = {
+
+    };
+    return featureVector;
 }
 
 pair<Cost, Cost> Solver::hybridSolve(Cluster* cluster, Cost clb, Cost cub)
