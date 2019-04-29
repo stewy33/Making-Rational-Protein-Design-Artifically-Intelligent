@@ -1492,7 +1492,7 @@ void Solver::newSolution() {
     }
 }
 
-int nodeToGenerateDataFor = 1;
+int nodeToGenerateDataFor = 2;
 int currentNode = 0;
 bool inNodeSubTree = false;
 int nodeSubtreeSize = 0;
@@ -1500,7 +1500,7 @@ int nodeSubtreeSize = 0;
 void Solver::recursiveSolve(Cost lb) {
 
     // If we're at a node we want to add to data set, we handle branching differently. Otherwise, use toulbar2's heuristics as normal.
-    if (currentNode++ == nodeToGenerateDataFor) {
+    if (++currentNode == nodeToGenerateDataFor) {
 
         ofstream dataFile;
         dataFile.open("data.txt", ios::app);
