@@ -1709,6 +1709,7 @@ std::vector<double> Solver::getFeatureVector(int varIndex, Value val) {
     for (unsigned int i = 0; i < wcsp->getDomainSize(varIndex); i++) {
         unaryCosts.push_back((double) valuesAndCosts[i].cost);
     }
+    delete valuesAndCosts;
     std::sort(unaryCosts.begin(), unaryCosts.end());
     double meanUnaryCost = mean(unaryCosts);
     double medianUnaryCost = median(unaryCosts);
@@ -1719,8 +1720,38 @@ std::vector<double> Solver::getFeatureVector(int varIndex, Value val) {
     double thirdQuartileUnaryCost = unaryCosts[unaryCosts.size() * 3 / 4];
     double currUnaryCost = wcsp->getUnaryCost(varIndex, val);
 
+
     double numVars = wcsp->numberOfVariables();
     double unassignedVars = wcsp->numberOfUnassignedVariables();
+
+    double numConnectedConstraints = wcsp->numberOfConnectedBinaryConstraints();
+
+    //now get the pairwise costs
+    vector<Variable*> variables(wcsp->numberOfVariables());
+    variables = wcsp->getVars();
+    std::vector<double> binaryCosts (variables.size() - 1); //everything except current var
+    Variable* currVar = variables.at(varIndex);
+    //std::cout << currVar << std::endl;
+    BinaryConstraint *bc;
+
+    for (unsigned int i = 0; i < variables.size(); i++) {
+        // pairwise costs for all other variables
+        if (i != (unsigned int) varIndex) {
+            bc = currVar->getConstr(variables.at(i));
+            binaryCosts.push_back((double) bc->getCost(val, wcsp->getValue(i)));
+        }
+    }
+    // get statistics on costs vector
+
+    std::sort(binaryCosts.begin(), binaryCosts.end());
+    double meanBinaryCost = mean(binaryCosts);
+    double medianBinaryCost = median(binaryCosts);
+    double stdDevBinaryCost = stdDev(binaryCosts);
+    double minBinaryCost = (double) binaryCosts.front();
+    double maxBinaryCost = (double) binaryCosts.back();
+    double firstQuartileBinaryCost = binaryCosts[binaryCosts.size() / 4];
+    double thirdQuartileBinaryCost = binaryCosts[binaryCosts.size() * 3 / 4];
+
 
     std::vector<double> featureVector = {
             domainSize,
@@ -1749,7 +1780,17 @@ std::vector<double> Solver::getFeatureVector(int varIndex, Value val) {
             currUnaryCost,
 
             numVars,
-            unassignedVars
+            unassignedVars,
+
+            numConnectedConstraints,
+
+            meanBinaryCost,
+            medianBinaryCost,
+            stdDevBinaryCost,
+            minBinaryCost,
+            maxBinaryCost,
+            firstQuartileBinaryCost,
+            thirdQuartileBinaryCost
     };
     return featureVector;
 }
