@@ -1586,11 +1586,15 @@ void Solver::recursiveSolve(Cost lb) {
                             // We add a line to data.txt where we output the feature vector and the true size of subtree
                             for (double feature : featureVector) dataFile << feature << " ";
                             dataFile << currentNode - thisNode << endl;
-                            throw Contradiction();
                         }
 
+                        // We add a line to data.txt where we output the feature vector and the true size of subtree
                         for (double feature : featureVector) dataFile << feature << " ";
                         dataFile << currentNode - thisNode << endl;
+
+
+                        binaryChoicePoint(varIndex,
+                                          (wcsp->canbe(varIndex, bestval)) ? bestval : wcsp->getSupport(varIndex), lb);
                     } else {
                         binaryChoicePoint(varIndex,
                                           (wcsp->canbe(varIndex, bestval)) ? bestval : wcsp->getSupport(varIndex), lb);
