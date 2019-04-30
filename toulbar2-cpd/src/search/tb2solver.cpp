@@ -1592,9 +1592,6 @@ void Solver::recursiveSolve(Cost lb) {
                         for (double feature : featureVector) dataFile << feature << " ";
                         dataFile << currentNode - thisNode << endl;
 
-
-                        binaryChoicePoint(varIndex,
-                                          (wcsp->canbe(varIndex, bestval)) ? bestval : wcsp->getSupport(varIndex), lb);
                     } else {
                         binaryChoicePoint(varIndex,
                                           (wcsp->canbe(varIndex, bestval)) ? bestval : wcsp->getSupport(varIndex), lb);
