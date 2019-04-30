@@ -76,6 +76,9 @@ Solver::Solver(Cost initUpperBound)
           initialLowerBound(MIN_COST), globalLowerBound(MIN_COST), globalUpperBound(MAX_COST), initialDepth(0) {
     searchSize = new StoreCost(MIN_COST);
     wcsp = WeightedCSP::makeWeightedCSP(initUpperBound, (void *) this);
+
+    srand(0);
+    dataFile.open("data.txt");
 }
 
 Solver::~Solver() {
@@ -85,6 +88,8 @@ Solver::~Solver() {
     delete[] allVars;
     delete wcsp;
     delete ((StoreCost *) searchSize);
+
+    dataFile.close();
 }
 
 void Solver::initVarHeuristic() {
@@ -1492,129 +1497,124 @@ void Solver::newSolution() {
     }
 }
 
-int nodeToGenerateDataFor = 2;
 int currentNode = 0;
-bool inNodeSubTree = false;
-int nodeSubtreeSize = 0;
-
 void Solver::recursiveSolve(Cost lb) {
+    currentNode++;
 
-    // If we're at a node we want to add to data set, we handle branching differently. Otherwise, use toulbar2's heuristics as normal.
-    if (++currentNode == nodeToGenerateDataFor) {
-
-        ofstream dataFile;
-        dataFile.open("data.txt", ios::app);
-
-        // We consider size of subtree for every possible assignment of every possible variable
-        // For each choice, we output a line to data.txt where we output the feature vector and the true size of subtree
-        for (BTList<Value>::iterator iter = unassignedVars->begin(); iter != unassignedVars->end(); ++iter) {
-            int varIndex = *iter;
-
-            Value *domain = new Value[wcsp->getDomainSize(varIndex)];
-            wcsp->getEnumDomain(varIndex, domain);
-            int i = 0;
-            for (unsigned int i = 0; i < wcsp->getDomainSize(varIndex); i++) {
-                if (wcsp->canbe(varIndex, domain[i])) {
-                    cout << "\n---------------- Just branched on variable " << varIndex << " and value " << domain[i] << endl << endl;
-                    inNodeSubTree = true;
-                    nodeSubtreeSize = 0;
-                    Store::store();
-
-                    std::vector<double> featureVector = getFeatureVector(varIndex, domain[i]);
-                    binaryChoicePoint(varIndex, domain[i], lb);
-
-                    for (double feature : featureVector) {
-                        dataFile << feature << " ";
-                    }
-                    dataFile << nodeSubtreeSize << endl;
-
-                    Store::restore();
-                    inNodeSubTree = false;
-                }
-            }
-        }
-        dataFile.close();
-    } else {
-        /* Plug in NN here
-        float minEstimatedNodes = std::numeric_limits<float>::max();
-        int bestVar = -1;
-        int bestVal = -1;
-        for (BTList<Value>::iterator it = unassignedVars->begin(); it != unassignedVars->end(); ++it) {
-            int varIndex = *it;
-            for (int i = 0; i < wcsp->getDomainSize(varIndex); i++) {
-                float estimatedNodes = runNN();
-                if (estimatedNodes < minEstimatedNodes) {
-                    minEstimatedNodes = estimatedNodes;
-                    bestVar = varIndex;
-                    bestVal = wcsp->toValue(varIndex, i);
-                }
-            }
-        }
-        binaryChoicePointLDS(bestVar, bestVal, discrepancy);*/
-
-        int varIndex = -1;
-        if (ToulBar2::bep)
-            varIndex = getMostUrgent();
-        else if (ToulBar2::scpbranch)
-            varIndex = getNextScpCandidate();
-        else if (ToulBar2::Static_variable_ordering)
-            varIndex = getNextUnassignedVar();
-        else if (ToulBar2::weightedDegree && ToulBar2::lastConflict)
-            varIndex = ((ToulBar2::restart > 0) ? getVarMinDomainDivMaxWeightedDegreeLastConflictRandomized()
-                                                : getVarMinDomainDivMaxWeightedDegreeLastConflict());
-        else if (ToulBar2::lastConflict)
-            varIndex = ((ToulBar2::restart > 0) ? getVarMinDomainDivMaxDegreeLastConflictRandomized()
-                                                : getVarMinDomainDivMaxDegreeLastConflict());
-        else if (ToulBar2::weightedDegree)
-            varIndex = ((ToulBar2::restart > 0) ? getVarMinDomainDivMaxWeightedDegreeRandomized()
-                                                : getVarMinDomainDivMaxWeightedDegree());
-        else
-            varIndex = ((ToulBar2::restart > 0) ? getVarMinDomainDivMaxDegreeRandomized()
-                                                : getVarMinDomainDivMaxDegree());
-        if (varIndex >= 0) {
-            *((StoreCost *) searchSize) += ((Cost) (10e6 * Log(wcsp->getDomainSize(varIndex))));
-            if (ToulBar2::bep)
-                scheduleOrPostpone(varIndex);
-            else if (wcsp->enumerated(varIndex)) {
-                if (ToulBar2::binaryBranching) {
-                    assert(wcsp->canbe(varIndex, wcsp->getSupport(varIndex)));
-                    // Reuse last solution found if available
-                    Value bestval = ((ToulBar2::verifyOpt) ? (wcsp->getSup(varIndex) + 1) : wcsp->getBestValue(
-                            varIndex));
-                    if (ToulBar2::scpbranch) {
-                        try {
-                            scpChoicePoint(varIndex,
-                                           (wcsp->canbe(varIndex, bestval)) ? bestval : wcsp->getSupport(varIndex), lb);
-                        } catch (FindNewSequence) {
-                            throw FindNewSequence();
-                        }
-                    } else
-                        binaryChoicePoint(varIndex,
-                                          (wcsp->canbe(varIndex, bestval)) ? bestval : wcsp->getSupport(varIndex), lb);
-                } else
-                    narySortedChoicePoint(varIndex, lb);
-            } else if (ToulBar2::scpbranch) {
-                try {
-                    scpChoicePoint(varIndex, wcsp->getInf(varIndex), lb);
-                } catch (FindNewSequence) {
-                    throw FindNewSequence();
-                }
-            } else {
-                return binaryChoicePoint(varIndex, wcsp->getInf(varIndex), lb);
-            }
-        } else {
-            if (!ToulBar2::isZ)
-                assert(lb <= wcsp->getLb());
-            try {
-                newSolution();
-            } catch (FindNewSequence) {
-                throw FindNewSequence();
+    /* Plug in NN here
+    float minEstimatedNodes = std::numeric_limits<float>::max();
+    int bestVar = -1;
+    int bestVal = -1;
+    for (BTList<Value>::iterator it = unassignedVars->begin(); it != unassignedVars->end(); ++it) {
+        int varIndex = *it;
+        for (int i = 0; i < wcsp->getDomainSize(varIndex); i++) {
+            float estimatedNodes = runNN();
+            if (estimatedNodes < minEstimatedNodes) {
+                minEstimatedNodes = estimatedNodes;
+                bestVar = varIndex;
+                bestVal = wcsp->toValue(varIndex, i);
             }
         }
     }
+    binaryChoicePointLDS(bestVar, bestVal, discrepancy);*/
 
-    if (inNodeSubTree) {
-        nodeSubtreeSize++;
+    int varIndex = -1;
+    if (ToulBar2::bep)
+        varIndex = getMostUrgent();
+    else if (ToulBar2::scpbranch)
+        varIndex = getNextScpCandidate();
+    else if (ToulBar2::Static_variable_ordering)
+        varIndex = getNextUnassignedVar();
+    else if (ToulBar2::weightedDegree && ToulBar2::lastConflict)
+        varIndex = ((ToulBar2::restart > 0) ? getVarMinDomainDivMaxWeightedDegreeLastConflictRandomized()
+                                            : getVarMinDomainDivMaxWeightedDegreeLastConflict());
+    else if (ToulBar2::lastConflict)
+        varIndex = ((ToulBar2::restart > 0) ? getVarMinDomainDivMaxDegreeLastConflictRandomized()
+                                            : getVarMinDomainDivMaxDegreeLastConflict());
+    else if (ToulBar2::weightedDegree)
+        varIndex = ((ToulBar2::restart > 0) ? getVarMinDomainDivMaxWeightedDegreeRandomized()
+                                            : getVarMinDomainDivMaxWeightedDegree());
+    else
+        varIndex = ((ToulBar2::restart > 0) ? getVarMinDomainDivMaxDegreeRandomized()
+                                            : getVarMinDomainDivMaxDegree());
+    if (varIndex >= 0) {
+        *((StoreCost *) searchSize) += ((Cost) (10e6 * Log(wcsp->getDomainSize(varIndex))));
+        if (ToulBar2::bep)
+            scheduleOrPostpone(varIndex);
+        else if (wcsp->enumerated(varIndex)) {
+            if (ToulBar2::binaryBranching) {
+                assert(wcsp->canbe(varIndex, wcsp->getSupport(varIndex)));
+                // Reuse last solution found if available
+                Value bestval = ((ToulBar2::verifyOpt) ? (wcsp->getSup(varIndex) + 1) : wcsp->getBestValue(
+                        varIndex));
+                if (ToulBar2::scpbranch) {
+                    try {
+                        scpChoicePoint(varIndex,
+                                       (wcsp->canbe(varIndex, bestval)) ? bestval : wcsp->getSupport(varIndex), lb);
+                    } catch (FindNewSequence) {
+                        throw FindNewSequence();
+                    }
+                } else {
+                    // If we're at a node we want to add to data set, we handle branching differently. Otherwise, use toulbar2's heuristics as normal.
+                    double probAddToDataSet = 2 * pow((double)1/2, Store::getDepth() + 1);
+                    if ((double) rand() / RAND_MAX < probAddToDataSet) {
+                        // Choose a variable and value to branch on randomly
+                        unsigned int varValPair = rand() % (wcsp->getDomainSizeSum() - 1);
+                        Value branchingVal;
+                        for (auto iter = unassignedVars->begin();
+                             iter != unassignedVars->end(); ++iter) {
+                            varIndex = *iter;
+
+                            if (varValPair < wcsp->getDomainSize(varIndex)) {
+                                branchingVal = wcsp->toValue(varIndex, varValPair);
+                                break;
+                            }
+                            varValPair -= wcsp->getDomainSize(varIndex);
+                        }
+
+                        // Make sure our branchingVal is valid
+                        branchingVal = (wcsp->canbe(varIndex, branchingVal)) ? branchingVal : wcsp->getSupport(
+                                varIndex);
+
+                        int thisNode = currentNode;
+
+                        std::vector<double> featureVector = getFeatureVector(varIndex, branchingVal);
+
+                        try {
+                            binaryChoicePoint(varIndex, branchingVal, lb);
+                        } catch (...) {
+                            // We add a line to data.txt where we output the feature vector and the true size of subtree
+                            for (double feature : featureVector) dataFile << feature << " ";
+                            dataFile << currentNode - thisNode << endl;
+                            throw FindNewSequence();
+                        }
+
+                        for (double feature : featureVector) dataFile << feature << " ";
+                        dataFile << currentNode - thisNode << endl;
+                    } else {
+                        binaryChoicePoint(varIndex,
+                                          (wcsp->canbe(varIndex, bestval)) ? bestval : wcsp->getSupport(varIndex), lb);
+                    }
+                }
+            } else
+                narySortedChoicePoint(varIndex, lb);
+        } else if (ToulBar2::scpbranch) {
+            try {
+                scpChoicePoint(varIndex, wcsp->getInf(varIndex), lb);
+            } catch (FindNewSequence) {
+                throw FindNewSequence();
+            }
+        } else {
+            return binaryChoicePoint(varIndex, wcsp->getInf(varIndex), lb);
+        }
+    } else {
+        if (!ToulBar2::isZ)
+            assert(lb <= wcsp->getLb());
+        try {
+            newSolution();
+        } catch (FindNewSequence) {
+            throw FindNewSequence();
+        }
     }
 }
 
@@ -1705,7 +1705,7 @@ std::vector<double> Solver::getFeatureVector(int varIndex, Value val) {
     std::vector<double> unaryCosts;
     ValueCost *valuesAndCosts = new ValueCost[wcsp->getDomainSize(varIndex)];
     wcsp->getEnumDomainAndCost(varIndex, valuesAndCosts);
-    for (int i = 0; i < wcsp->getDomainSize(varIndex); i++) {
+    for (unsigned int i = 0; i < wcsp->getDomainSize(varIndex); i++) {
         unaryCosts.push_back((double) valuesAndCosts[i].cost);
     }
     std::sort(unaryCosts.begin(), unaryCosts.end());

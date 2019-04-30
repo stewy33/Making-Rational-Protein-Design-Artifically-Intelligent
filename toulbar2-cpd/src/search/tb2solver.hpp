@@ -221,6 +221,8 @@ protected:
     Long nbHybridNew;
     Long nbRecomputationNodes;
 
+    ofstream dataFile;
+
     //only for pretty print of optimality gap information
     Cost initialLowerBound;
     Cost globalLowerBound;
