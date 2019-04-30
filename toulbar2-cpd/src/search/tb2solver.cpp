@@ -1582,11 +1582,11 @@ void Solver::recursiveSolve(Cost lb) {
 
                         try {
                             binaryChoicePoint(varIndex, branchingVal, lb);
-                        } catch (...) {
+                        } catch (Contradiction) {
                             // We add a line to data.txt where we output the feature vector and the true size of subtree
                             for (double feature : featureVector) dataFile << feature << " ";
                             dataFile << currentNode - thisNode << endl;
-                            throw FindNewSequence();
+                            throw Contradiction();
                         }
 
                         for (double feature : featureVector) dataFile << feature << " ";
