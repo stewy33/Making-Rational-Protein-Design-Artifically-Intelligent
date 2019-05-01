@@ -1556,8 +1556,8 @@ void Solver::recursiveSolve(Cost lb) {
                     }
                 } else {
                     // If we're at a node we want to add to data set, we handle branching differently. Otherwise, use toulbar2's heuristics as normal.
-                    double probAddToDataSet = 2 * pow((double)1/2, Store::getDepth() + 1);
-                    if ((double) rand() / RAND_MAX < probAddToDataSet) {
+                    double probAddToDataSet = pow((double)1/2, Store::getDepth() + 1);
+                    if ((double) rand() / (3.5 * RAND_MAX) < probAddToDataSet) {
                         // Choose a variable and value to branch on randomly
                         unsigned int varValPair = rand() % (wcsp->getDomainSizeSum() - 1);
                         Value branchingVal;
@@ -1591,7 +1591,6 @@ void Solver::recursiveSolve(Cost lb) {
                         // We add a line to data.txt where we output the feature vector and the true size of subtree
                         for (double feature : featureVector) dataFile << feature << " ";
                         dataFile << currentNode - thisNode << endl;
-
                     } else {
                         binaryChoicePoint(varIndex,
                                           (wcsp->canbe(varIndex, bestval)) ? bestval : wcsp->getSupport(varIndex), lb);
