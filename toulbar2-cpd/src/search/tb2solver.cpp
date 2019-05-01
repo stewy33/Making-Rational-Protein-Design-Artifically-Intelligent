@@ -69,6 +69,27 @@ WeightedCSPSolver *WeightedCSPSolver::makeWeightedCSPSolver(Cost ub) {
     return solver;
 }
 
+template<typename T>
+double mean(std::vector<T> samples) {
+    boost::accumulators::accumulator_set<double, boost::accumulators::features<boost::accumulators::tag::mean> > acc;
+    std::for_each(samples.begin(), samples.end(), boost::bind<void>(boost::ref(acc), _1));
+    return boost::accumulators::extract_result<boost::accumulators::tag::mean>(acc);
+}
+
+template<typename T>
+double median(std::vector<T> samples) {
+    boost::accumulators::accumulator_set<double, boost::accumulators::features<boost::accumulators::tag::median> > acc;
+    std::for_each(samples.begin(), samples.end(), boost::bind<void>(boost::ref(acc), _1));
+    return boost::accumulators::extract_result<boost::accumulators::tag::median>(acc);
+}
+
+template<typename T>
+double stdDev(std::vector<T> samples) {
+    boost::accumulators::accumulator_set<double, boost::accumulators::features<boost::accumulators::tag::variance> > acc;
+    std::for_each(samples.begin(), samples.end(), boost::bind<void>(boost::ref(acc), _1));
+    return std::sqrt(boost::accumulators::extract_result<boost::accumulators::tag::variance>(acc));
+}
+
 Solver::Solver(Cost initUpperBound)
         : nbNodes(0), nbBacktracks(0), nbBacktracksLimit(LONGLONG_MAX), wcsp(NULL), allVars(NULL), unassignedVars(NULL),
           lastConflictVar(-1), nbSol(0.), nbSGoods(0), nbSGoodsUse(0), tailleSep(0), cp(NULL), open(NULL),
@@ -76,9 +97,6 @@ Solver::Solver(Cost initUpperBound)
           initialLowerBound(MIN_COST), globalLowerBound(MIN_COST), globalUpperBound(MAX_COST), initialDepth(0) {
     searchSize = new StoreCost(MIN_COST);
     wcsp = WeightedCSP::makeWeightedCSP(initUpperBound, (void *) this);
-
-    srand(0);
-    dataFile.open("data.txt");
 }
 
 Solver::~Solver() {
@@ -109,6 +127,54 @@ void Solver::initVarHeuristic() {
     }
     // Now function setvalue can be called safely!
     ToulBar2::setvalue = setvalue;
+
+
+    srand(0);
+    dataFile.open("data.txt");
+
+    std::clock_t start;
+    double duration;
+    start = std::clock();
+
+    // Now get all the pairwise costs
+    std::vector<Double> allBinaryCosts;
+    std::vector<Variable*> variables = wcsp->getVars();
+    for (unsigned int i = 0; i < variables.size(); i++) {
+        Variable* currVar = variables.at(i);
+        Value* domain1 = new Value[wcsp->getDomainSize(i)];
+        wcsp->getEnumDomain(i, domain1);
+
+        for (unsigned int j = i + 1; j < variables.size(); j++) {
+            // pairwise costs for all variables
+            if (i != j) {
+                BinaryConstraint *bc = currVar->getConstr(variables.at(j));
+                if (bc != nullptr) {
+                    Value* domain2 = new Value[wcsp->getDomainSize(j)];
+                    wcsp->getEnumDomain(j, domain2);
+                    for (unsigned int k = 0; k < wcsp->getDomainSize(i); k++) {
+                        for (unsigned int l = 0; l < wcsp->getDomainSize(j); l++) {
+                            allBinaryCosts.push_back(bc->getCost(domain1[k], domain2[l]));
+                        }
+                    }
+                    delete domain2;
+                }
+            }
+        }
+        delete domain1;
+    }
+
+    // get statistics on costs vector
+    std::sort(allBinaryCosts.begin(), allBinaryCosts.end());
+    meanAllBinaryCost = mean(allBinaryCosts);
+    medianAllBinaryCost = median(allBinaryCosts);
+    stdDevAllBinaryCost = stdDev(allBinaryCosts);
+    minAllBinaryCost = allBinaryCosts.front();
+    maxAllBinaryCost = allBinaryCosts.back();
+    firstQuartileAllBinaryCost = allBinaryCosts[allBinaryCosts.size() / 4];
+    thirdQuartileAllBinaryCost = allBinaryCosts[allBinaryCosts.size() * 3 / 4];
+
+    duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
+    cout << "duration: " << duration << endl;
 }
 
 Cost Solver::read_wcsp(const char *fileName) {
@@ -1560,6 +1626,7 @@ void Solver::recursiveSolve(Cost lb) {
                     if ((double) rand() / (3.5 * RAND_MAX) < probAddToDataSet) {
                         // Choose a variable and value to branch on randomly
                         unsigned int varValPair = rand() % (wcsp->getDomainSizeSum() - 1);
+
                         Value branchingVal;
                         for (auto iter = unassignedVars->begin();
                              iter != unassignedVars->end(); ++iter) {
@@ -1577,9 +1644,7 @@ void Solver::recursiveSolve(Cost lb) {
                                 varIndex);
 
                         int thisNode = currentNode;
-
-                        std::vector<double> featureVector = getFeatureVector(varIndex, branchingVal);
-
+                        std::vector<Double> featureVector = getFeatureVector(varIndex, branchingVal);
                         try {
                             binaryChoicePoint(varIndex, branchingVal, lb);
                         } catch (Contradiction) {
@@ -1655,30 +1720,9 @@ void Solver::recursiveSolveLDS(int discrepancy) {
         newSolution();
 }
 
-template<typename T>
-double mean(std::vector<T> samples) {
-    boost::accumulators::accumulator_set<double, boost::accumulators::features<boost::accumulators::tag::mean> > acc;
-    std::for_each(samples.begin(), samples.end(), boost::bind<void>(boost::ref(acc), _1));
-    return boost::accumulators::extract_result<boost::accumulators::tag::mean>(acc);
-}
-
-template<typename T>
-double median(std::vector<T> samples) {
-    boost::accumulators::accumulator_set<double, boost::accumulators::features<boost::accumulators::tag::median> > acc;
-    std::for_each(samples.begin(), samples.end(), boost::bind<void>(boost::ref(acc), _1));
-    return boost::accumulators::extract_result<boost::accumulators::tag::median>(acc);
-}
-
-template<typename T>
-double stdDev(std::vector<T> samples) {
-    boost::accumulators::accumulator_set<double, boost::accumulators::features<boost::accumulators::tag::variance> > acc;
-    std::for_each(samples.begin(), samples.end(), boost::bind<void>(boost::ref(acc), _1));
-    return std::sqrt(boost::accumulators::extract_result<boost::accumulators::tag::variance>(acc));
-}
-
-std::vector<double> Solver::getFeatureVector(int varIndex, Value val) {
-    double domainSize = wcsp->getDomainSize(varIndex);
-    double domainProduct = 1.0;
+std::vector<Double> Solver::getFeatureVector(int varIndex, Value val) {
+    int domainSize = wcsp->getDomainSize(varIndex);
+    Long domainProduct = 1.0;
     std::vector<int> domainSizes;
     for (BTList<Value>::iterator iter = unassignedVars->begin(); iter != unassignedVars->end(); ++iter) {
         int i = *iter;
@@ -1687,39 +1731,71 @@ std::vector<double> Solver::getFeatureVector(int varIndex, Value val) {
     }
     std::sort(domainSizes.begin(), domainSizes.end());
 
-    double meanDomainSize = mean(domainSizes);
-    double medianDomainSize = median(domainSizes);
-    double stdDevDomainSize = stdDev(domainSizes);
-    double minDomainSize = domainSizes.front();
-    double maxDomainSize = domainSizes.back();
-    double firstQuartileDomainSize = domainSizes[domainSizes.size() / 4];
-    double thirdQuartileDomainSize = domainSizes[domainSizes.size() * 3 / 4];
+    Double meanDomainSize = mean(domainSizes);
+    Double medianDomainSize = median(domainSizes);
+    Double stdDevDomainSize = stdDev(domainSizes);
+    Double minDomainSize = domainSizes.front();
+    Double maxDomainSize = domainSizes.back();
+    Double firstQuartileDomainSize = domainSizes[domainSizes.size() / 4];
+    Double thirdQuartileDomainSize = domainSizes[domainSizes.size() * 3 / 4];
 
-    double estDegree = (double) wcsp->getDegree(varIndex); //can also get actual degree
-    double weightedDegree = (double) wcsp->getWeightedDegree(varIndex);
-    double lowerBound = (double) wcsp->getDLb();
-    double upperBound = (double) wcsp->getDUb();
+    int estDegree = wcsp->getDegree(varIndex); //can also get actual degree
+    int weightedDegree = wcsp->getWeightedDegree(varIndex);
+    Double lowerBound = wcsp->getDLb();
+    Double upperBound = wcsp->getDUb();
     //some more stuff is available, like getBestValue which may help DNN learn new variable ordering heuristic
 
     // Find unary cost statistics of certain variable
-    std::vector<double> unaryCosts;
+    std::vector<Double> unaryCosts;
     ValueCost *valuesAndCosts = new ValueCost[wcsp->getDomainSize(varIndex)];
     wcsp->getEnumDomainAndCost(varIndex, valuesAndCosts);
     for (unsigned int i = 0; i < wcsp->getDomainSize(varIndex); i++) {
-        unaryCosts.push_back((double) valuesAndCosts[i].cost);
+        unaryCosts.push_back((Double) valuesAndCosts[i].cost);
     }
+    delete valuesAndCosts;
     std::sort(unaryCosts.begin(), unaryCosts.end());
-    double meanUnaryCost = mean(unaryCosts);
-    double medianUnaryCost = median(unaryCosts);
-    double stdDevUnaryCost = stdDev(unaryCosts);
-    double minUnaryCost = (double) unaryCosts.front();
-    double maxUnaryCost = (double) wcsp->getMaxUnaryCost(varIndex);
-    double firstQuartileUnaryCost = unaryCosts[unaryCosts.size() / 4];
-    double thirdQuartileUnaryCost = unaryCosts[unaryCosts.size() * 3 / 4];
-    double currUnaryCost = wcsp->getUnaryCost(varIndex, val);
-    double involvedCostFunctions = wcsp->getDegree(varIndex);
+    Double meanUnaryCost = mean(unaryCosts);
+    Double medianUnaryCost = median(unaryCosts);
+    Double stdDevUnaryCost = stdDev(unaryCosts);
+    Double minUnaryCost = (Double) unaryCosts.front();
+    Double maxUnaryCost = (Double) wcsp->getMaxUnaryCost(varIndex);
+    Double firstQuartileUnaryCost = unaryCosts[unaryCosts.size() / 4];
+    Double thirdQuartileUnaryCost = unaryCosts[unaryCosts.size() * 3 / 4];
+    Double currUnaryCost = wcsp->getUnaryCost(varIndex, val);
 
-    std::vector<double> featureVector = {
+
+    int numVars = wcsp->numberOfVariables();
+    int unassignedVars = wcsp->numberOfUnassignedVariables();
+
+    int numConnectedConstraints = wcsp->numberOfConnectedConstraints();
+    int numTotalConstraints = wcsp->numberOfConstraints();
+
+    // Now get the pairwise costs
+    std::vector<Variable*> variables = wcsp->getVars();
+    Variable* currVar = variables.at(varIndex);
+
+    std::vector<Double> binaryCosts;
+    for (unsigned int i = 0; i < variables.size(); i++) {
+        // pairwise costs for all other variables
+        if (i != (unsigned int) varIndex) {
+            BinaryConstraint* bc = currVar->getConstr(variables.at(i));
+            if (bc != nullptr) {
+                binaryCosts.push_back((Double) bc->getCost(val, wcsp->getValue(i)));
+            }
+        }
+    }
+
+    // get statistics on costs vector
+    std::sort(binaryCosts.begin(), binaryCosts.end());
+    Double meanBinaryCost = mean(binaryCosts);
+    Double medianBinaryCost = median(binaryCosts);
+    Double stdDevBinaryCost = stdDev(binaryCosts);
+    Cost minBinaryCost = binaryCosts.front();
+    Cost maxBinaryCost = binaryCosts.back();
+    Double firstQuartileBinaryCost = binaryCosts[binaryCosts.size() / 4];
+    Double thirdQuartileBinaryCost = binaryCosts[binaryCosts.size() * 3 / 4];
+
+    std::vector<Double> featureVector = {
             domainSize,
             domainProduct,
             meanDomainSize,
@@ -1745,7 +1821,27 @@ std::vector<double> Solver::getFeatureVector(int varIndex, Value val) {
             thirdQuartileUnaryCost,
             currUnaryCost,
 
-            involvedCostFunctions
+            numVars,
+            unassignedVars,
+
+            numConnectedConstraints,
+            numTotalConstraints,
+
+            meanBinaryCost,
+            medianBinaryCost,
+            stdDevBinaryCost,
+            minBinaryCost,
+            maxBinaryCost,
+            firstQuartileBinaryCost,
+            thirdQuartileBinaryCost,
+
+            meanAllBinaryCost,
+            medianAllBinaryCost,
+            stdDevAllBinaryCost,
+            minAllBinaryCost,
+            maxAllBinaryCost,
+            firstQuartileAllBinaryCost,
+            thirdQuartileAllBinaryCost
     };
     return featureVector;
 }
